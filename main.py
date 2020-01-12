@@ -13,11 +13,15 @@ FPS = 60
 clock = pygame.time.Clock()
 
 
-def load_image(name, colorkey=None):
+def load_image(name, colorkey=None):  # загрузка изображения
     fullname = os.path.join('data', name)
-    image = pygame.image.load(fullname).convert_alpha()
-    colorkey = image.get_at((0, 0))
-    image.set_colorkey(colorkey)
+    image = pygame.image.load(fullname)
+    if colorkey is not None:
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
     return image
 
 
@@ -37,7 +41,6 @@ player_image = {'one_level': load_image('baby.jpg'), 'two_level': load_image('ba
 rooms = ['gameroom', 'bedroom', 'hall', 'kitchen', 'bathroom']
 room = 'hall'
 age = 'one_level'
-
 
 # группы спрайтов
 player_group = pygame.sprite.Group()
@@ -79,13 +82,8 @@ class RightButton(pygame.sprite.Sprite):
 
 
 def draw(room, age):
-    if room == 'bathroom':
-        LeftButton()
-    elif room == 'gameroom':
-        RightButton()
-    else:
-        RightButton()
-        LeftButton()
+    RightButton()
+    LeftButton()
     Player(age)
     Fon(room)
 
@@ -98,10 +96,10 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             for sprite in right_button_group:
                 if sprite.rect.collidepoint(event.pos):
-                    room = rooms[rooms.index(room) + 1]
+                    room = rooms[(rooms.index(room) + 1) % len(rooms)]
             for sprite in left_button_group:
                 if sprite.rect.collidepoint(event.pos):
-                    room = rooms[rooms.index(room) - 1]
+                    room = rooms[(rooms.index(room) - 1) % len(rooms)]
     player_group.empty()
     left_button_group.empty()
     right_button_group.empty()
