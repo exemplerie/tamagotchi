@@ -2,20 +2,54 @@ import pygame
 import sys
 import os
 
-# я обрезала картинки и добавиа временный цикл, чтоб проверить работают ли классы
-# вроде пока все нормально и комнаты даже перелистываются, но спрайты как-то странны обрезаются
-# я не добавила кнопку снизу экрана и не трогала спрайт яйца(display который), мне кажется фон лучше сразу весь рисовать
+# верунлись границы комнат
 
-pygame.init()
-size = width, height = 455, 565
-screen = pygame.display.set_mode(size)
+SIZE = WIDTH, HEIGHT = 455, 565
 FPS = 60
-clock = pygame.time.Clock()
+LEVELS = ['Baby', 'Teen', 'Adult', 'Elder']  # пока не знаю, пригодятся ли, но можно выводить как названия
+
+
+class Display(pygame.sprite.Sprite):  # дисплей (яйцо)
+    def __init__(self):
+        super().__init__(dis, all_sprites)
+        self.image = system_details_images['display']
+        self.rect = self.image.get_rect().move(0, 0)
+
+
+class Buttons(pygame.sprite.Sprite):  # все кнопки (для каждой - отдельный экземпляр)
+    def __init__(self, detail, side):
+        super().__init__(buttons_group, all_sprites)
+        self.image = system_details_images[detail]
+        if side == 'right':
+            self.rect = self.image.get_rect().move(260, 450)
+        elif side == 'left':
+            self.rect = self.image.get_rect().move(100, 450)
+
+
+class Room(pygame.sprite.Sprite):  # комнаты пусть пока останутся так, пока не ввели интерактива
+    def __init__(self, room_type):
+        super().__init__(room_group, all_sprites)
+        self.image = room_images[room_type]
+        self.rect = self.image.get_rect().move(0, 190)
+
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self, what_age):
+        super().__init__(player_group, all_sprites)
+        self.image = player_image[what_age]
+        self.rect = self.image.get_rect().move(180, 300)
+
+#class Needs(pygame.sprite.Sprite):
+#    def __init__(self):
+#        super().__init__(needs_group, all_sprites)
+#        self.image = pygame.Surface((60, 20))
+#        pygame.draw.rect(self.image, pygame.Color("blue"), ((0, 0), (60, 20)), 2)
+#        self.rect = pygame.Rect(250, 200, 50, 10)
 
 
 def load_image(name, colorkey=None):  # загрузка изображения
     fullname = os.path.join('data', name)
-    image = pygame.image.load(fullname)
+    image = pygame.image.load(fullname).convert()
     if colorkey is not None:
         if colorkey == -1:
             colorkey = image.get_at((0, 0))
@@ -25,68 +59,66 @@ def load_image(name, colorkey=None):  # загрузка изображения
     return image
 
 
+def click_processing(btn):  # вынесла обработку нажатий в отдельную функцию сейчас, т.к. все равно
+    # потом будет больше функционала и действий с нажатием (чтобы сам цикл не захламлять)
+    global now_room
+    if btn == right_btn:
+        now_room += 1
+    if btn == left_btn:
+        now_room -= 1
+
+
+def generate_state():  # по сути генерирует актуальное состояние игры - нужную комнату и игрока в нужном возрасте
+    # т.е. обновляет их статус, в зависимости от действий (переключения комнат, прибавления возраста)
+    room_group.empty()
+    Room(rooms[now_room])
+
+    global buttons_group
+    if now_room == 0:
+        buttons_group.empty()
+        right_btn.add(buttons_group)
+    elif now_room == len(rooms) - 1:
+        buttons_group.empty()
+        left_btn.add(buttons_group)
+    Player(age)
+
+
 def terminate():  # выход из программы
     pygame.quit()
     sys.exit()
 
 
-tile_images = {'arrow_left': load_image('arrow_left.jpg'), 'arrow_right': load_image('arrow_right.jpg'),
-               'display': load_image('display.png')}
-fon_images = {'kitchen': load_image('kitchen.png'),
-              'bathroom': load_image('bathroom.png'), 'bedroom': load_image('bedroom.jpg'),
-              'hall': load_image('hall.png'), 'gameroom': load_image('gameroom.png')}
-player_image = {'one_level': load_image('baby.jpg'), 'two_level': load_image('baby_2.jpg'),
-                'three_level': load_image('baby_2.jpg')}
-#  порядок комнат: игровая, спальня, холл, кухня, ванная
+pygame.init()
+
+screen = pygame.display.set_mode(SIZE)
+
+system_details_images = {'arrow_left': load_image('arrow_left.png', -1),
+                         'arrow_right': load_image('arrow_right.png', -1),
+                         'display': load_image('display.png', -1)}
+# назвала системными деталями, тут все что вне маленького экранчика игры
+room_images = {'kitchen': load_image('kitchen.png'),
+               'bathroom': load_image('bathroom.png'), 'bedroom': load_image('bedroom.jpg'),
+               'hall': load_image('hall.png'), 'gameroom': load_image('gameroom.png')}
+player_image = {0: load_image('baby.jpg'), 1: load_image('baby_2.jpg'),
+                2: load_image('baby_2.jpg')}
+
 rooms = ['gameroom', 'bedroom', 'hall', 'kitchen', 'bathroom']
-room = 'hall'
-age = 'one_level'
+now_room = 2  # удобнее запоминать номер комнаты и возраст, чтобы изменять число, а не позицию в словаре
+age = 0
 
-# группы спрайтов
 player_group = pygame.sprite.Group()
-fon_group = pygame.sprite.Group()
-right_button_group = pygame.sprite.Group()
-left_button_group = pygame.sprite.Group()
+buttons_group = pygame.sprite.Group()
+room_group = pygame.sprite.Group()
+dis = pygame.sprite.Group()
+all_sprites = pygame.sprite.Group()
+#needs_group = pygame.sprite.Group()
 
-
-class Fon(pygame.sprite.Sprite):
-    def __init__(self, fon_type):
-        super().__init__(fon_group)
-        self.image = fon_images[fon_type]
-        self.rect = self.image.get_rect().move(0, 190)
-        self.add(fon_group)
-
-
-class Player(pygame.sprite.Sprite):
-    def __init__(self, age):
-        super().__init__(player_group)
-        self.image = player_image[age]
-        self.rect = self.image.get_rect().move(180, 300)
-        self.add(player_group)
-
-
-class LeftButton(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__(left_button_group)
-        self.image = tile_images['arrow_left']
-        self.rect = self.image.get_rect().move(40, 500)
-        self.add(left_button_group)
-
-
-class RightButton(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__(right_button_group)
-        self.image = tile_images['arrow_right']
-        self.rect = self.image.get_rect().move(365, 500)
-        self.add(right_button_group)
-
-
-def draw(room, age):
-    RightButton()
-    LeftButton()
-    Player(age)
-    Fon(room)
-
+Room(rooms[now_room])
+Player(age)
+right_btn = Buttons('arrow_right', 'right')  # в функции потом очень удобно проверять, какая кнопка нажата
+left_btn = Buttons('arrow_left', 'left')
+Display()
+#Needs()
 
 running = True
 while running:
@@ -94,24 +126,14 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            for sprite in right_button_group:
-                if sprite.rect.collidepoint(event.pos):
-                    room = rooms[(rooms.index(room) + 1) % len(rooms)]
-            for sprite in left_button_group:
-                if sprite.rect.collidepoint(event.pos):
-                    room = rooms[(rooms.index(room) - 1) % len(rooms)]
-    player_group.empty()
-    left_button_group.empty()
-    right_button_group.empty()
-    fon_group.empty()
-    draw(room, age)
-
+            for sprite in buttons_group:
+                if sprite.rect.collidepoint(event.pos):  # при нажати на любой спрайт-кнопку отправляет на обработку
+                    click_processing(sprite)
+    generate_state()
     screen.fill((0, 0, 0))
-    fon_group.draw(screen)
-    left_button_group.draw(screen)
-    right_button_group.draw(screen)
+    room_group.draw(screen)
     player_group.draw(screen)
-
+    dis.draw(screen)
+    buttons_group.draw(screen)
     pygame.display.flip()
-    clock.tick(FPS)
-terminate()
+pygame.quit()
