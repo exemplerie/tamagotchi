@@ -58,7 +58,8 @@ class Needs(pygame.sprite.Sprite):
         pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (60, 10)), 2)
         pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (60 / 100 * self.value, 10)))
 
-#class Poop(pygame.sprite.Sprite):
+
+# class Poop(pygame.sprite.Sprite):
 #    def __init__(self):
 #        super().__init__(poop_group, all_sprites)
 #        self.image = system_details_images['poop']
@@ -102,7 +103,6 @@ def generate_state():  # по сути генерирует актуальное
     for n in needs_group:
         n.update()
     Player(age)
-    print(happiness.value)
 
 
 def terminate():  # выход из программы
@@ -128,7 +128,6 @@ player_image = {0: load_image('baby.jpg'), 1: load_image('baby_2.jpg'),
 rooms = ['gameroom', 'bedroom', 'hall', 'kitchen', 'bathroom']
 now_room = 2  # удобнее запоминать номер комнаты и возраст, чтобы изменять число, а не позицию в словаре
 age = 0
-
 
 player_group = pygame.sprite.Group()
 buttons_group = pygame.sprite.Group()
