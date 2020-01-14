@@ -58,6 +58,12 @@ class Needs(pygame.sprite.Sprite):
         pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (60, 10)), 2)
         pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (60 / 100 * self.value, 10)))
 
+#class Poop(pygame.sprite.Sprite):
+#    def __init__(self):
+#        super().__init__(poop_group, all_sprites)
+#        self.image = system_details_images['poop']
+#        self.rect = self.image.get_rect().move(260, 350)
+
 
 def load_image(name, colorkey=None):  # загрузка изображения
     fullname = os.path.join('data', name)
@@ -110,7 +116,8 @@ screen = pygame.display.set_mode(SIZE)
 
 system_details_images = {'arrow_left': load_image('arrow_left.png', -1),
                          'arrow_right': load_image('arrow_right.png', -1),
-                         'display': load_image('display.png', -1)}
+                         'display': load_image('display.png', -1),
+                         'poop': load_image('poop.jpg', -1)}
 # назвала системными деталями, тут все что вне маленького экранчика игры
 room_images = {'kitchen': load_image('kitchen.png'),
                'bathroom': load_image('bathroom.png'), 'bedroom': load_image('bedroom.jpg'),
@@ -122,11 +129,13 @@ rooms = ['gameroom', 'bedroom', 'hall', 'kitchen', 'bathroom']
 now_room = 2  # удобнее запоминать номер комнаты и возраст, чтобы изменять число, а не позицию в словаре
 age = 0
 
+
 player_group = pygame.sprite.Group()
 buttons_group = pygame.sprite.Group()
 room_group = pygame.sprite.Group()
 dis = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
+#  poop_group = pygame.sprite.Group()
 needs_group = pygame.sprite.Group()
 
 Room(rooms[now_room])
@@ -134,6 +143,8 @@ Player(age)
 right_btn = Buttons('arrow_right', 'right')  # в функции потом очень удобно проверять, какая кнопка нажата
 left_btn = Buttons('arrow_left', 'left')
 Display()
+#  Poop()
+#  Needs()
 
 hunger = Needs("red", 0)
 care = Needs("blue", 1)
