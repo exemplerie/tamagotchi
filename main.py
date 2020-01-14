@@ -39,12 +39,24 @@ class Player(pygame.sprite.Sprite):
         self.image = player_image[what_age]
         self.rect = self.image.get_rect().move(180, 300)
 
-#class Needs(pygame.sprite.Sprite):
-#    def __init__(self):
-#        super().__init__(needs_group, all_sprites)
-#        self.image = pygame.Surface((60, 20))
-#        pygame.draw.rect(self.image, pygame.Color("blue"), ((0, 0), (60, 20)), 2)
-#        self.rect = pygame.Rect(250, 200, 50, 10)
+
+class Needs(pygame.sprite.Sprite):
+    def __init__(self, color, h):
+        super().__init__(needs_group, all_sprites)
+        self.h = h
+        self.value = 100
+        self.color = color
+        self.image = None
+        self.rect = None
+
+    def update(self):
+        self.value -= 0.1
+        self.image = pygame.Surface((60, 20))
+        self.image.set_colorkey(0)
+        self.image.convert()
+        self.rect = pygame.Rect(250, 200 + 15 * self.h, 50, 10)
+        pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (60, 10)), 2)
+        pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (60 / 100 * self.value, 10)))
 
 
 def load_image(name, colorkey=None):  # загрузка изображения
@@ -75,13 +87,16 @@ def generate_state():  # по сути генерирует актуальное
 
     global buttons_group
     if now_room == 0:
-        left_btn.kill()     # kill() - убирает спрайт из все групп; - die(*group) - из одной
+        left_btn.kill()  # kill() - убирает спрайт из все групп; - die(*group) - из одной
     elif now_room == len(rooms) - 1:
         right_btn.kill()
     else:
         left_btn.add(buttons_group)
         right_btn.add(buttons_group)
+    for n in needs_group:
+        n.update()
     Player(age)
+    print(happiness.value)
 
 
 def terminate():  # выход из программы
@@ -112,14 +127,18 @@ buttons_group = pygame.sprite.Group()
 room_group = pygame.sprite.Group()
 dis = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
-#needs_group = pygame.sprite.Group()
+needs_group = pygame.sprite.Group()
 
 Room(rooms[now_room])
 Player(age)
 right_btn = Buttons('arrow_right', 'right')  # в функции потом очень удобно проверять, какая кнопка нажата
 left_btn = Buttons('arrow_left', 'left')
 Display()
-#Needs()
+
+hunger = Needs("red", 0)
+care = Needs("blue", 1)
+happiness = Needs("yellow", 2)
+sleep = Needs("purple", 3)
 
 running = True
 while running:
@@ -136,5 +155,6 @@ while running:
     player_group.draw(screen)
     dis.draw(screen)
     buttons_group.draw(screen)
+    needs_group.draw(screen)
     pygame.display.flip()
 pygame.quit()
