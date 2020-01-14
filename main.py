@@ -75,11 +75,12 @@ def generate_state():  # по сути генерирует актуальное
 
     global buttons_group
     if now_room == 0:
-        buttons_group.empty()
-        right_btn.add(buttons_group)
+        left_btn.kill()     # kill() - убирает спрайт из все групп; - die(*group) - из одной
     elif now_room == len(rooms) - 1:
-        buttons_group.empty()
+        right_btn.kill()
+    else:
         left_btn.add(buttons_group)
+        right_btn.add(buttons_group)
     Player(age)
 
 
