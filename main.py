@@ -4,7 +4,7 @@ import os
 
 # верунлись границы комнат
 
-SIZE = WIDTH, HEIGHT = 455, 565
+SIZE = WIDTH, HEIGHT = 800, 937
 FPS = 60
 LEVELS = ['Baby', 'Teen', 'Adult', 'Elder']  # пока не знаю, пригодятся ли, но можно выводить как названия
 
@@ -21,23 +21,23 @@ class Buttons(pygame.sprite.Sprite):  # все кнопки (для каждой
         super().__init__(buttons_group, all_sprites)
         self.image = system_details_images[detail]
         if side == 'right':
-            self.rect = self.image.get_rect().move(260, 450)
+            self.rect = self.image.get_rect().move(500, 750)
         elif side == 'left':
-            self.rect = self.image.get_rect().move(100, 450)
+            self.rect = self.image.get_rect().move(200, 750)
 
 
 class Room(pygame.sprite.Sprite):  # комнаты пусть пока останутся так, пока не ввели интерактива
     def __init__(self, room_type):
         super().__init__(room_group, all_sprites)
         self.image = room_images[room_type]
-        self.rect = self.image.get_rect().move(0, 190)
+        self.rect = self.image.get_rect().move(60, 310)
 
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, what_age):
         super().__init__(player_group, all_sprites)
         self.image = player_image[what_age]
-        self.rect = self.image.get_rect().move(180, 300)
+        self.rect = self.image.get_rect().move(380, 500)
 
 
 class Needs(pygame.sprite.Sprite):
@@ -51,12 +51,12 @@ class Needs(pygame.sprite.Sprite):
 
     def update(self):
         self.value -= 0.1
-        self.image = pygame.Surface((60, 20))
+        self.image = pygame.Surface((70, 17))
         self.image.set_colorkey(0)
         self.image.convert()
-        self.rect = pygame.Rect(250, 200 + 15 * self.h, 50, 10)
-        pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (60, 10)), 2)
-        pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (60 / 100 * self.value, 10)))
+        self.rect = pygame.Rect(470, 330 + 20 * self.h, 70, 17)
+        pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (70, 17)), 2)
+        pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (70 / 100 * self.value, 17)))
 
 
 # class Poop(pygame.sprite.Sprite):
@@ -116,13 +116,13 @@ screen = pygame.display.set_mode(SIZE)
 
 system_details_images = {'arrow_left': load_image('arrow_left.png', -1),
                          'arrow_right': load_image('arrow_right.png', -1),
-                         'display': load_image('display.png', -1),
+                         'display': load_image('egg.png', -1),
                          'poop': load_image('poop.jpg', -1)}
 # назвала системными деталями, тут все что вне маленького экранчика игры
-room_images = {'kitchen': load_image('kitchen.png'),
-               'bathroom': load_image('bathroom.png'), 'bedroom': load_image('bedroom.jpg'),
-               'hall': load_image('hall.png'), 'gameroom': load_image('gameroom.png')}
-player_image = {0: load_image('baby.jpg'), 1: load_image('baby_2.jpg'),
+room_images = {'kitchen': load_image('kitchen.jpg'),
+               'bathroom': load_image('bathroom.jpg'), 'bedroom': load_image('bedroom.jpg'),
+               'hall': load_image('hall.jpg'), 'gameroom': load_image('gameroom.jpg')}
+player_image = {0: load_image('duck.png', -1), 1: load_image('baby_2.jpg'),
                 2: load_image('baby_2.jpg')}
 
 rooms = ['gameroom', 'bedroom', 'hall', 'kitchen', 'bathroom']
