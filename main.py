@@ -4,7 +4,7 @@ import os
 
 # верунлись границы комнат
 
-SIZE = WIDTH, HEIGHT = 800, 937
+SIZE = WIDTH, HEIGHT = 670, 800
 FPS = 60
 LEVELS = ['Baby', 'Teen', 'Adult', 'Elder']  # пока не знаю, пригодятся ли, но можно выводить как названия
 
@@ -21,23 +21,23 @@ class Buttons(pygame.sprite.Sprite):  # все кнопки (для каждой
         super().__init__(buttons_group, all_sprites)
         self.image = system_details_images[detail]
         if side == 'right':
-            self.rect = self.image.get_rect().move(500, 750)
+            self.rect = self.image.get_rect().move(400, 630)
         elif side == 'left':
-            self.rect = self.image.get_rect().move(200, 750)
+            self.rect = self.image.get_rect().move(160, 630)
 
 
 class Room(pygame.sprite.Sprite):  # комнаты пусть пока останутся так, пока не ввели интерактива
     def __init__(self, room_type):
         super().__init__(room_group, all_sprites)
         self.image = room_images[room_type]
-        self.rect = self.image.get_rect().move(60, 310)
+        self.rect = self.image.get_rect().move(60, 200)
 
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, what_age):
         super().__init__(player_group, all_sprites)
         self.image = player_image[what_age]
-        self.rect = self.image.get_rect().move(380, 500)
+        self.rect = self.image.get_rect().move(280, 400)
 
 
 class Needs(pygame.sprite.Sprite):
@@ -54,7 +54,7 @@ class Needs(pygame.sprite.Sprite):
         self.image = pygame.Surface((70, 17))
         self.image.set_colorkey(0)
         self.image.convert()
-        self.rect = pygame.Rect(470, 330 + 20 * self.h, 70, 17)
+        self.rect = pygame.Rect(390, 280 + 20 * self.h, 70, 17)
         pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (70, 17)), 2)
         pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (70 / 100 * self.value, 17)))
 
