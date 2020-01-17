@@ -9,13 +9,6 @@ FPS = 60
 LEVELS = ['Baby', 'Teen', 'Adult', 'Elder']  # пока не знаю, пригодятся ли, но можно выводить как названия
 
 
-class Display(pygame.sprite.Sprite):  # дисплей (яйцо)
-    def __init__(self):
-        super().__init__(dis, all_sprites)
-        self.image = system_details_images['display']
-        self.rect = self.image.get_rect().move(0, 0)
-
-
 class Buttons(pygame.sprite.Sprite):  # все кнопки (для каждой - отдельный экземпляр)
     def __init__(self, detail, side):
         super().__init__(buttons_group, all_sprites)
@@ -27,10 +20,15 @@ class Buttons(pygame.sprite.Sprite):  # все кнопки (для каждой
 
 
 class Room(pygame.sprite.Sprite):  # комнаты пусть пока останутся так, пока не ввели интерактива
-    def __init__(self, room_type):
+    def __init__(self):
         super().__init__(room_group, all_sprites)
-        self.image = room_images[room_type]
+        self.number = 2
+        self.image = room_images[rooms[self.number]]
         self.rect = self.image.get_rect().move(60, 200)
+
+    def update(self, k):
+        self.number += k
+        self.image = room_images[rooms[self.number]]
 
 
 class Player(pygame.sprite.Sprite):
@@ -40,23 +38,18 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(280, 400)
 
 
-class Needs(pygame.sprite.Sprite):
+class Needs:
     def __init__(self, color, h):
-        super().__init__(needs_group, all_sprites)
         self.h = h
         self.value = 100
         self.color = color
-        self.image = None
-        self.rect = None
+
+    def render(self):
+        pygame.draw.rect(screen, pygame.Color(self.color), ((390, 280 + 20 * self.h), (70, 17)), 2)
+        pygame.draw.rect(screen, pygame.Color(self.color), ((390, 280 + 20 * self.h), (70 / 100 * self.value, 17)))
 
     def update(self):
         self.value -= 0.1
-        self.image = pygame.Surface((70, 17))
-        self.image.set_colorkey(0)
-        self.image.convert()
-        self.rect = pygame.Rect(390, 280 + 20 * self.h, 70, 17)
-        pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (70, 17)), 2)
-        pygame.draw.rect(self.image, pygame.Color(self.color), ((0, 0), (70 / 100 * self.value, 17)))
 
 
 # class Poop(pygame.sprite.Sprite):
@@ -80,28 +73,25 @@ def load_image(name, colorkey=None):  # загрузка изображения
 
 def click_processing(btn):  # вынесла обработку нажатий в отдельную функцию сейчас, т.к. все равно
     # потом будет больше функционала и действий с нажатием (чтобы сам цикл не захламлять)
-    global now_room
     if btn == right_btn:
-        now_room += 1
+        room.update(1)
     if btn == left_btn:
-        now_room -= 1
+        room.update(-1)
 
 
 def generate_state():  # по сути генерирует актуальное состояние игры - нужную комнату и игрока в нужном возрасте
     # т.е. обновляет их статус, в зависимости от действий (переключения комнат, прибавления возраста)
-    room_group.empty()
-    Room(rooms[now_room])
-
     global buttons_group
-    if now_room == 0:
+    if room.number == 0:
         left_btn.kill()  # kill() - убирает спрайт из все групп; - die(*group) - из одной
-    elif now_room == len(rooms) - 1:
+    elif room.number == len(rooms) - 1:
         right_btn.kill()
     else:
         left_btn.add(buttons_group)
         right_btn.add(buttons_group)
-    for n in needs_group:
+    for n in needs:
         n.update()
+        n.render()
     Player(age)
 
 
@@ -126,29 +116,25 @@ player_image = {0: load_image('duck.png', -1), 1: load_image('baby_2.jpg'),
                 2: load_image('baby_2.jpg')}
 
 rooms = ['gameroom', 'bedroom', 'hall', 'kitchen', 'bathroom']
-now_room = 2  # удобнее запоминать номер комнаты и возраст, чтобы изменять число, а не позицию в словаре
 age = 0
 
 player_group = pygame.sprite.Group()
 buttons_group = pygame.sprite.Group()
 room_group = pygame.sprite.Group()
-dis = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 #  poop_group = pygame.sprite.Group()
-needs_group = pygame.sprite.Group()
 
-Room(rooms[now_room])
+room = Room()
 Player(age)
 right_btn = Buttons('arrow_right', 'right')  # в функции потом очень удобно проверять, какая кнопка нажата
 left_btn = Buttons('arrow_left', 'left')
-Display()
 #  Poop()
-#  Needs()
 
 hunger = Needs("red", 0)
 care = Needs("blue", 1)
 happiness = Needs("yellow", 2)
 sleep = Needs("purple", 3)
+needs = [hunger, care, happiness, sleep]
 
 running = True
 while running:
@@ -159,12 +145,11 @@ while running:
             for sprite in buttons_group:
                 if sprite.rect.collidepoint(event.pos):  # при нажати на любой спрайт-кнопку отправляет на обработку
                     click_processing(sprite)
-    generate_state()
     screen.fill((0, 0, 0))
     room_group.draw(screen)
     player_group.draw(screen)
-    dis.draw(screen)
+    screen.blit(system_details_images['display'], (0, 0))
     buttons_group.draw(screen)
-    needs_group.draw(screen)
+    generate_state()
     pygame.display.flip()
 pygame.quit()
