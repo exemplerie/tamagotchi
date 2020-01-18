@@ -17,9 +17,11 @@ class Buttons(pygame.sprite.Sprite):  # все кнопки (для каждой
             self.rect = self.image.get_rect().move(400, 630)
         elif side == 'left':
             self.rect = self.image.get_rect().move(160, 630)
+        elif side == 'center':
+            self.rect = self.image.get_rect().move(285, 640)
 
 
-class Room(pygame.sprite.Sprite):  # комнаты пусть пока останутся так, пока не ввели интерактива
+class Room(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__(room_group, all_sprites)
         self.number = 2
@@ -44,12 +46,34 @@ class Needs:
         self.value = 100
         self.color = color
 
-    def render(self):
+    def render(self):       # отрисовка
         pygame.draw.rect(screen, pygame.Color(self.color), ((390, 280 + 20 * self.h), (70, 17)), 2)
-        pygame.draw.rect(screen, pygame.Color(self.color), ((390, 280 + 20 * self.h), (70 / 100 * self.value, 17)))
+        pygame.draw.rect(screen, pygame.Color(self.color), ((393, 283 + 20 * self.h), (65 / 100 * self.value, 12)))
 
-    def update(self):
-        self.value -= 0.1
+    def fill(self, count):      # заполняет нужды
+        experience_scale.update(count // 2)
+        self.value = self.value + count
+        if self.value > 100:
+            self.value = 100
+
+    def update(self):       # постоянное понижение нужд
+        self.value -= 0.01
+        self.render()
+
+
+class XP:       # шкала опыта (для достижения новых уровней (возрастов))
+    def __init__(self):
+        self.experience = 0
+
+    def render(self):
+        pygame.draw.rect(screen, pygame.Color("black"), ((190, 280), (100, 17)), 2)
+        pygame.draw.rect(screen, pygame.Color("purple"), ((193, 283), (95 / 100 * self.experience, 12)))
+
+    def update(self, xp=0):
+        self.experience += xp
+        if self.experience > 100:
+            self.experience = 100
+        self.render()
 
 
 # class Poop(pygame.sprite.Sprite):
@@ -57,6 +81,26 @@ class Needs:
 #        super().__init__(poop_group, all_sprites)
 #        self.image = system_details_images['poop']
 #        self.rect = self.image.get_rect().move(260, 350)
+
+def sleeping():     # сон
+    rect = room.rect
+    # рисуется полупрозрачный синий прямоугольник на всю поверхность комнаты
+    surface = pygame.Surface((room.image.get_width(), room.image.get_height()), pygame.SRCALPHA)
+    pygame.draw.rect(surface, (0, 49, 83, 180), surface.get_rect())
+    screen.blit(surface, (rect.left, rect.top))
+    sleep.fill(0.1)     # сон заполняется
+
+
+def washing(mouse_pos):     # мытье
+    x, y = mouse_pos
+    pygame.mouse.set_visible(0)
+    # в поле экранчика курсор заменяется на мыло
+    # пока есть косяк с мылом за пределом дисплея, но потом исправим
+    cursor = system_details_images['soap']
+    screen.blit(cursor, (x, y))
+    if tamagotchi.rect.collidepoint(mouse_pos):
+        global care
+        care.fill(0.1)      # уход заполняется
 
 
 def load_image(name, colorkey=None):  # загрузка изображения
@@ -73,13 +117,26 @@ def load_image(name, colorkey=None):  # загрузка изображения
 
 def click_processing(btn):  # вынесла обработку нажатий в отдельную функцию сейчас, т.к. все равно
     # потом будет больше функционала и действий с нажатием (чтобы сам цикл не захламлять)
+    global actual_state
+    if btn == main_btn:     # обработка нажатий главной кнопки
+        if not actual_state:
+            if rooms[room.number] == 'bedroom':
+                actual_state = 'Sleep'
+            if rooms[room.number] == 'bathroom':
+                actual_state = 'Washing'
+        else:
+            actual_state = None     # отменяет любое состояние
+    else:
+        actual_state = None
+        pygame.mouse.set_visible(1)
     if btn == right_btn:
         room.update(1)
     if btn == left_btn:
         room.update(-1)
 
 
-def generate_state():  # по сути генерирует актуальное состояние игры - нужную комнату и игрока в нужном возрасте
+def generate_state(mouse_pos):
+    # по сути генерирует актуальное состояние игры - нужную комнату и игрока в нужном возрасте
     # т.е. обновляет их статус, в зависимости от действий (переключения комнат, прибавления возраста)
     global buttons_group
     if room.number == 0:
@@ -89,10 +146,21 @@ def generate_state():  # по сути генерирует актуальное
     else:
         left_btn.add(buttons_group)
         right_btn.add(buttons_group)
+    if actual_state:
+        if actual_state == 'Sleep':
+            sleeping()
+        elif actual_state == 'Washing':
+            washing(mouse_pos)
+
+    # в пределах "яйца" оставляем курсор, чтобы удобно было нажимать на кнопки
+    dis = system_details_images['display']
+    mask = pygame.mask.from_surface(dis)
+    if mask.get_at(pos):
+        pygame.mouse.set_visible(1)
+
     for n in needs:
         n.update()
-        n.render()
-    Player(age)
+    experience_scale.update()
 
 
 def terminate():  # выход из программы
@@ -106,8 +174,10 @@ screen = pygame.display.set_mode(SIZE)
 
 system_details_images = {'arrow_left': load_image('arrow_left.png', -1),
                          'arrow_right': load_image('arrow_right.png', -1),
+                         'main_button': load_image('btn.png', -1),
                          'display': load_image('egg.png', -1),
-                         'poop': load_image('poop.jpg', -1)}
+                         'poop': load_image('poop.jpg', -1),
+                         'soap': load_image('soap.png', -1)}
 # назвала системными деталями, тут все что вне маленького экранчика игры
 room_images = {'kitchen': load_image('kitchen.jpg'),
                'bathroom': load_image('bathroom.jpg'), 'bedroom': load_image('bedroom.jpg'),
@@ -117,6 +187,7 @@ player_image = {0: load_image('duck.png', -1), 1: load_image('baby_2.jpg'),
 
 rooms = ['gameroom', 'bedroom', 'hall', 'kitchen', 'bathroom']
 age = 0
+actual_state = None
 
 player_group = pygame.sprite.Group()
 buttons_group = pygame.sprite.Group()
@@ -125,31 +196,37 @@ all_sprites = pygame.sprite.Group()
 #  poop_group = pygame.sprite.Group()
 
 room = Room()
-Player(age)
+tamagotchi = Player(age)
 right_btn = Buttons('arrow_right', 'right')  # в функции потом очень удобно проверять, какая кнопка нажата
 left_btn = Buttons('arrow_left', 'left')
+main_btn = Buttons('main_button', 'center')
 #  Poop()
 
-hunger = Needs("red", 0)
-care = Needs("blue", 1)
-happiness = Needs("yellow", 2)
-sleep = Needs("purple", 3)
-needs = [hunger, care, happiness, sleep]
+happiness = Needs("yellow", 0)
+sleep = Needs("blue", 1)
+hunger = Needs("red", 2)
+care = Needs("green", 3)
+needs = [happiness, sleep, hunger, care]
 
+experience_scale = XP()
+
+pos = None
 running = True
 while running:
     for event in pygame.event.get():
+        pos = pygame.mouse.get_pos()  # позиция мышки
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             for sprite in buttons_group:
-                if sprite.rect.collidepoint(event.pos):  # при нажати на любой спрайт-кнопку отправляет на обработку
+                if sprite.rect.collidepoint(pos):  # при нажати на любой спрайт-кнопку отправляет на обработку
                     click_processing(sprite)
     screen.fill((0, 0, 0))
     room_group.draw(screen)
     player_group.draw(screen)
-    screen.blit(system_details_images['display'], (0, 0))
+    generate_state(pos)
+    screen.blit(system_details_images['display'], (0, 0))   # отрисовка яйца (убрала отдельный класс,
+    # ибо бессмысленно)
     buttons_group.draw(screen)
-    generate_state()
     pygame.display.flip()
 pygame.quit()
