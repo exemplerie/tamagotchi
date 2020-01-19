@@ -41,18 +41,23 @@ class Needs:
         self.value = 100
         self.color = color
 
-    def render(self):  # отрисовка
-        pygame.draw.rect(screen, pygame.Color(self.color), ((390, 280 + 20 * self.h), (70, 17)), 2)
-        pygame.draw.rect(screen, pygame.Color(self.color), ((393, 283 + 20 * self.h), (65 / 100 * self.value, 12)))
+    def render(self):       # отрисовка
+        if self.value == 0:
+            pygame.draw.rect(screen, pygame.Color(self.color), ((390, 280 + 20 * self.h), (70, 17)), 2)
+        else:
+            pygame.draw.rect(screen, pygame.Color(self.color), ((390, 280 + 20 * self.h), (70, 17)), 2)
+            pygame.draw.rect(screen, pygame.Color(self.color), ((393, 283 + 20 * self.h), (65 / 100 * self.value, 12)))
 
-    def fill(self, count):  # заполняет нужды
+    def fill(self, count):      # заполняет нужды
         experience_scale.update(count // 2)
         self.value = self.value + count
+
+    def update(self):       # постоянное понижение нужд
+        self.value -= 0.01
         if self.value > 100:
             self.value = 100
-
-    def update(self):  # постоянное понижение нужд
-        self.value -= 0.01
+        if self.value < 0:
+            self.value = 0
         self.render()
 
 
@@ -162,7 +167,7 @@ def generate_state(mouse_pos):
     x, y = mouse_pos
     # по сути генерирует актуальное состояние игры - нужную комнату и игрока в нужном возрасте
     # т.е. обновляет их статус, в зависимости от действий (переключения комнат, прибавления возраста)
-    global buttons_group
+    global buttons_group, main_btn
     if room.number == 0:
         left_btn.kill()  # kill() - убирает спрайт из все групп; - die(*group) - из одной
     elif room.number == len(rooms) - 1:
@@ -180,6 +185,19 @@ def generate_state(mouse_pos):
         pygame.mouse.set_visible(0)
         screen.blit(cursor, (x, y))
 
+    #  замена кнопочек в зависимости от комнат
+    main_btn.kill()
+    if room.number == 0:
+        main_btn = Buttons('gameroom_button', 'center')
+    elif room.number == 1:
+        main_btn = Buttons('bedroom_button', 'center')
+    elif room.number == 2:
+        main_btn = Buttons('main_button', 'center')
+    elif room.number == 3:
+        main_btn = Buttons('kitchen_button', 'center')
+    elif room.number == 4:
+        main_btn = Buttons('bathroom_button', 'center')
+    main_btn.add(buttons_group)
     if actual_state:
         if actual_state == 'Sleep':
             sleeping()
@@ -210,6 +228,11 @@ system_details_images = {'arrow_left': load_image('arrow_left.png', -1),
                          'little_left': load_image('little_left.png', -1),
                          'little_right': load_image('little_right.png', -1),
                          'main_button': load_image('btn.png', -1),
+                         'main_button': load_image('ButtonClassic.png', -1),
+                         'bathroom_button': load_image('ButtonBathroom.png', -1),
+                         'bedroom_button': load_image('ButtonBedroom.png', -1),
+                         'gameroom_button': load_image('ButtonGameroom.png', -1),
+                         'kitchen_button': load_image('ButtonKitchen.png', -1),
                          'display': load_image('egg.png', -1),
                          'poop': load_image('poop.jpg', -1),
                          'soap': load_image('soap.png', -1)}
