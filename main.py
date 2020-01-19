@@ -41,18 +41,16 @@ class Needs:
         self.value = 100
         self.color = color
 
-    def render(self):       # отрисовка
-        if self.value == 0:
-            pygame.draw.rect(screen, pygame.Color(self.color), ((390, 280 + 20 * self.h), (70, 17)), 2)
-        else:
-            pygame.draw.rect(screen, pygame.Color(self.color), ((390, 280 + 20 * self.h), (70, 17)), 2)
+    def render(self):  # отрисовка
+        pygame.draw.rect(screen, pygame.Color(self.color), ((390, 280 + 20 * self.h), (70, 17)), 2)
+        if self.value != 0:
             pygame.draw.rect(screen, pygame.Color(self.color), ((393, 283 + 20 * self.h), (65 / 100 * self.value, 12)))
 
-    def fill(self, count):      # заполняет нужды
+    def fill(self, count):  # заполняет нужды
         experience_scale.update(count // 2)
         self.value = self.value + count
 
-    def update(self):       # постоянное понижение нужд
+    def update(self):  # постоянное понижение нужд
         self.value -= 0.01
         if self.value > 100:
             self.value = 100
@@ -101,24 +99,24 @@ def washing(mouse_pos):  # мытье
         care.fill(0.1)  # уход заполняется
 
 
-def feeding(mouse_pos, click=False):        # кормление
-    little_left_arrow.add(buttons_group)        # переключатели блюд
+def feeding(mouse_pos, click=False):  # кормление
+    little_left_arrow.add(buttons_group)  # переключатели блюд
     little_right_arrow.add(buttons_group)
     food_image = food[num_food]
     rect = food_image.get_rect().move(320, 535)
     global cursor
     if not cursor:
-        screen.blit(food_image, (320, 525))     # если еда не взята
+        screen.blit(food_image, (320, 525))  # если еда не взята
         food_image.set_alpha(255)
-        if click and rect.collidepoint(mouse_pos):      # взятие еды
+        if click and rect.collidepoint(mouse_pos):  # взятие еды
             cursor = food_image
     elif click:
-        if tamagotchi.rect.collidepoint(mouse_pos):     # наполнение голода и пропадание еды
+        if tamagotchi.rect.collidepoint(mouse_pos):  # наполнение голода и пропадание еды
             hunger.fill(10)
             food_image.set_alpha(food_image.get_alpha() - 80)
             if food_image.get_alpha() < 60:
                 cursor = None
-        if rect.collidepoint(mouse_pos):        # закончилась
+        if rect.collidepoint(mouse_pos):  # закончилась
             cursor = None
 
 
@@ -176,28 +174,20 @@ def generate_state(mouse_pos):
         left_btn.add(buttons_group)
         right_btn.add(buttons_group)
 
-    dis = system_details_images['display']      # дисплей (курсор на нем обычный)
+    dis = system_details_images['display']  # дисплей (курсор на нем обычный)
     mask = pygame.mask.from_surface(dis)
 
-    if mask.get_at(pos) or not cursor:      # обработка состояния курсора
+    if mask.get_at(pos) or not cursor:  # обработка состояния курсора
         pygame.mouse.set_visible(1)
     elif cursor:
         pygame.mouse.set_visible(0)
         screen.blit(cursor, (x, y))
 
-    #  замена кнопочек в зависимости от комнат
-    main_btn.kill()
-    if room.number == 0:
-        main_btn = Buttons('gameroom_button', 'center')
-    elif room.number == 1:
-        main_btn = Buttons('bedroom_button', 'center')
-    elif room.number == 2:
-        main_btn = Buttons('main_button', 'center')
-    elif room.number == 3:
-        main_btn = Buttons('kitchen_button', 'center')
-    elif room.number == 4:
-        main_btn = Buttons('bathroom_button', 'center')
-    main_btn.add(buttons_group)
+    if rooms[room.number] == 'hall':    #  замена кнопочек в зависимости от комнат
+        main_btn.image = system_details_images['main_button']
+    else:
+        main_btn.image = system_details_images[rooms[room.number] + '_button']
+
     if actual_state:
         if actual_state == 'Sleep':
             sleeping()
@@ -227,7 +217,6 @@ system_details_images = {'arrow_left': load_image('arrow_left.png', -1),
                          'arrow_right': load_image('arrow_right.png', -1),
                          'little_left': load_image('little_left.png', -1),
                          'little_right': load_image('little_right.png', -1),
-                         'main_button': load_image('btn.png', -1),
                          'main_button': load_image('ButtonClassic.png', -1),
                          'bathroom_button': load_image('ButtonBathroom.png', -1),
                          'bedroom_button': load_image('ButtonBedroom.png', -1),
