@@ -2,8 +2,8 @@ import pygame
 import random
 from os import path
 
-img_dir = path.join(path.dirname(__file__), 'data')
-snd_dir = path.join(path.dirname(__file__), 'data')
+img_dir = path.join(path.dirname(__file__), 'data/shooter')
+snd_dir = path.join(path.dirname(__file__), 'data/shooter')
 
 WIDTH = 480
 HEIGHT = 600
