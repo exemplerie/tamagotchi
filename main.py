@@ -2,12 +2,27 @@ import pygame
 import sys
 import os
 import shoes
+import random
 
 # верунлись границы комнат
 
 SIZE = WIDTH, HEIGHT = 670, 800
 FPS = 60
-LEVELS = ['Baby', 'Teen', 'Adult', 'Elder']  # пока не знаю, пригодятся ли, но можно выводить как названия
+LEVELS = ['Baby', 'Adult', 'Elder']  # пока не знаю, пригодятся ли, но можно выводить как названия
+SCREEN_RECT = (170, 280, 500, 580)
+SIDE = 330
+
+
+def load_image(name, colorkey=None):  # загрузка изображения
+    fullname = os.path.join('data', name)
+    image = pygame.image.load(fullname).convert()
+    if colorkey is not None:
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
 
 
 class Buttons(pygame.sprite.Sprite):  # все кнопки (для каждой - отдельный экземпляр)
@@ -22,7 +37,9 @@ class Room(pygame.sprite.Sprite):
         super().__init__(room_group, all_sprites)
         self.number = 2
         self.image = room_images[rooms[self.number]]
-        self.rect = self.image.get_rect().move(60, 200)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = WIDTH // 2
+        self.rect.centery = HEIGHT // 2 + 15
         self.mask = pygame.mask.from_surface(self.image)
 
     def update(self, k):
@@ -31,15 +48,26 @@ class Room(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, state, columns, rows, x, y):
+    def __init__(self, state):
         player_group.empty()
         super().__init__(player_group)
-        self.sheet = player_image[state]
+        self.state = state
+        if state in player_image[LEVELS[age]]:
+            dict_elem = player_image[LEVELS[age]][state]
+        elif LEVELS[age] == 'Elder':
+            dict_elem = player_image[LEVELS[age]]['main']
+        else:
+            dict_elem = player_image['Adult'][state]
+        self.sheet = dict_elem[0]
         self.frames = []
-        self.cut_sheet(self.sheet, columns, rows)
+        self.cut_sheet(self.sheet, dict_elem[1], 1)
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
-        self.rect = self.rect.move(x, y)
+        self.rect.center = SCREEN_RECT[0] + SIDE // 2, SCREEN_RECT[1] + SIDE // 2 + 20
+        if LEVELS[age] == 'Baby':
+            self.rect = self.rect.move(0, 30)
+            if self.state != 'main':
+                self.image = pygame.transform.scale(self.image, (100, 100))
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -53,18 +81,24 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
+        if LEVELS[age] == 'Baby' and self.state != 'main':
+            self.image = pygame.transform.scale(self.image, (100, 100))
 
 
 class Needs:
-    def __init__(self, color, h):
+    def __init__(self, color, h, type):
         self.h = h
         self.value = 100
         self.color = color
+        self.type = type
+        icon = load_image('icons\\' + self.type + '_icon.png', -1)
+        self.image = pygame.transform.scale(icon, (25, 25))
 
     def render(self):  # отрисовка
         pygame.draw.rect(screen, pygame.Color(self.color), ((390, 280 + 20 * self.h), (70, 17)), 2)
         if self.value != 0:
             pygame.draw.rect(screen, pygame.Color(self.color), ((393, 283 + 20 * self.h), (65 / 100 * self.value, 12)))
+        screen.blit(self.image, (470, 270 + 25 * self.h))
 
     def fill(self, plus):  # заполняет нужды
         experience_scale.update(plus // 2)
@@ -77,6 +111,37 @@ class Needs:
         if self.value < 0:
             self.value = 0
         self.render()
+
+
+class Particle(pygame.sprite.Sprite):
+    # сгенерируем частицы разного размера
+    fire = [load_image("bubble.png", -1)]
+    for scale in (5, 10, 20):
+        fire.append(pygame.transform.scale(fire[0], (scale, scale)))
+
+    def __init__(self, pos, dx, dy):
+        super().__init__(particles, all_sprites)
+        self.image = random.choice(self.fire)
+        self.rect = self.image.get_rect()
+
+        # у каждой частицы своя скорость — это вектор
+        self.velocity = [dx, dy]
+        # и свои координаты
+        self.rect.x, self.rect.y = pos
+
+        # гравитация будет одинаковой (значение константы)
+        self.gravity = 0.05
+
+    def update(self):
+        # применяем гравитационный эффект:
+        # движение с ускорением под действием гравитации
+        self.velocity[1] += self.gravity
+        # перемещаем частицу
+        self.rect.x += self.velocity[0]
+        self.rect.y += self.velocity[1]
+        # убиваем, если частица ушла за экран
+        if not self.rect.colliderect(SCREEN_RECT):
+            self.kill()
 
 
 class XP:  # шкала опыта (для достижения новых уровней (возрастов))
@@ -109,12 +174,16 @@ def sleeping():  # сон
     sleep.fill(0.1)  # сон заполняется
 
 
-def washing(mouse_pos):  # мытье
+def washing(mouse_pos, then):  # мытье
     # в поле экранчика курсор заменяется на мыло
     # пока есть косяк с мылом за пределом дисплея, но потом исправим
     global cursor
     cursor = system_details_images['soap']
+    now = pygame.time.get_ticks()
     if tamagotchi.rect.collidepoint(mouse_pos):
+        print(now, then)
+        if now - then > 600:
+            create_particles(pygame.mouse.get_pos())
         global care
         care.fill(0.1)  # уход заполняется
 
@@ -151,34 +220,23 @@ def choose_game(mouse_pos, click=False):
             shoes.begin()
 
 
-def load_image(name, colorkey=None):  # загрузка изображения
-    fullname = os.path.join('data', name)
-    image = pygame.image.load(fullname).convert()
-    if colorkey is not None:
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey)
-    else:
-        image = image.convert_alpha()
-    return image
-
-
 def click_processing(btn):  # вынесла обработку нажатий в отдельную функцию сейчас, т.к. все равно
     # потом будет больше функционала и действий с нажатием (чтобы сам цикл не захламлять)
-    global actual_state, num_food, cursor
+    global actual_state, num_food, cursor, tamagotchi
     if btn == main_btn:  # обработка нажатий главной кнопки
         if not actual_state:
             if rooms[room.number] == 'bedroom':
-                tamagotchi = Player('sleep', 4, 1, 280, 400)
+                tamagotchi = Player('sleep')
                 actual_state = 'Sleep'
             if rooms[room.number] == 'bathroom':
                 actual_state = 'Washing'
+                timer = pygame.time.get_ticks()
             if rooms[room.number] == 'kitchen':
                 actual_state = 'Feeding'
             if rooms[room.number] == 'gameroom':
                 actual_state = 'Gaming'
         else:
-            tamagotchi = Player('main', 4, 1, 280, 400)
+            tamagotchi = Player('main')
             actual_state = None  # отменяет любое состояние
             cursor = None
 
@@ -187,6 +245,8 @@ def click_processing(btn):  # вынесла обработку нажатий �
     elif btn == little_right_arrow:
         num_food = (num_food + 1) % len(food)
     else:
+        if tamagotchi.state != 'main':
+            tamagotchi = Player('main')
         actual_state = None
         pygame.mouse.set_visible(1)
         cursor = None
@@ -209,9 +269,6 @@ def generate_state(mouse_pos):
         left_btn.add(buttons_group)
         right_btn.add(buttons_group)
 
-    # dis = system_details_images['display']  # дисплей (курсор на нем обычный)
-    # mask = pygame.mask.from_surface(dis)
-
     if not room.rect.collidepoint(mouse_pos) or not cursor:  # обработка состояния курсора
         pygame.mouse.set_visible(1)
     elif cursor:
@@ -227,7 +284,7 @@ def generate_state(mouse_pos):
         if actual_state == 'Sleep':
             sleeping()
         elif actual_state == 'Washing':
-            washing(mouse_pos)
+            washing(mouse_pos, timer)
         elif actual_state == 'Feeding':
             feeding(mouse_pos)
         elif actual_state == 'Gaming':
@@ -241,6 +298,15 @@ def generate_state(mouse_pos):
     experience_scale.update()
 
 
+def create_particles(position):
+    # количество создаваемых частиц
+    particle_count = 20
+    # возможные скорости
+    numbers = range(-5, 6)
+    for _ in range(particle_count):
+        Particle(position, random.choice(numbers), random.choice(numbers))
+
+
 def terminate():  # выход из программы
     pygame.quit()
     sys.exit()
@@ -249,6 +315,7 @@ def terminate():  # выход из программы
 pygame.init()
 
 screen = pygame.display.set_mode(SIZE)
+clock = pygame.time.Clock()
 
 system_details_images = {'arrow_left': load_image('arrow_left.png', -1),
                          'arrow_right': load_image('arrow_right.png', -1),
@@ -270,26 +337,31 @@ food = [load_image('food/banana.png', -1), load_image('food/egg.png', -1), load_
         load_image('food/salad.png', -1),
         load_image('food/corn.png', -1), load_image('food/taco.png', -1)]
 
-room_images = {'kitchen': load_image('kitchen.jpg'),
-               'bathroom': load_image('bathroom.jpg'), 'bedroom': load_image('bedroom.jpg'),
-               'hall': load_image('hall.jpg'), 'gameroom': load_image('gameroom.jpg')}
-player_image = {'main': load_image('hamster.png', -1), 'sleep': load_image('hamster2.png', -1)}
-
+room_images = {'kitchen': load_image('kitchen.png'),
+               'bathroom': load_image('bathroom.png'), 'bedroom': load_image('bedroom.jpg'),
+               'hall': load_image('hall.png'), 'gameroom': load_image('gameroom.png')}
+player_image = {'Baby': {'main': [load_image('baby_hamster.png', -1), 5]},
+                'Adult': {'main': [load_image('hamster.png', -1), 4],
+                          'sleep': [load_image('hamster_sleep.png', -1), 4]},
+                'Elder': {'main': [load_image('elder-hamster.png', -1), 2],
+                          'sleep': [load_image('elder_hamster_sleep.png', -1), 2]}}
 rooms = ['gameroom', 'bedroom', 'hall', 'kitchen', 'bathroom']
 age = 0
 actual_state = None
 num_food = 0
 num_game = 0
 cursor = None
+timer = pygame.time.get_ticks()
 
 player_group = pygame.sprite.Group()
 buttons_group = pygame.sprite.Group()
 room_group = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
+particles = pygame.sprite.Group()
 #  poop_group = pygame.sprite.Group()
 
 room = Room()
-tamagotchi = Player('main', 4, 1, 280, 400)
+tamagotchi = Player('main')
 left_btn = Buttons('arrow_left', 160, 630)  # в функции потом очень удобно проверять, какая кнопка нажата
 right_btn = Buttons('arrow_right', 400, 630)
 main_btn = Buttons('main_button', 285, 640)
@@ -297,11 +369,11 @@ little_left_arrow = Buttons('little_left', 270, 530)
 little_right_arrow = Buttons('little_right', 370, 530)
 #  Poop()
 
-happiness = Needs("yellow", 0)
-sleep = Needs("blue", 1)
-hunger = Needs("red", 2)
-care = Needs("green", 3)
-needs = [happiness, sleep, hunger, care]
+hunger = Needs("red", 0, "hunger")
+sleep = Needs("blue", 1, "sleep")
+care = Needs("green", 2, "care")
+happiness = Needs("yellow", 3, "happiness")
+needs = [hunger, sleep, care, happiness]
 experience_scale = XP()
 
 count = -1
@@ -327,8 +399,11 @@ while running:
     if count % 30 == 0:
         player_group.update()
     generate_state(pos)
+    particles.draw(screen)
     screen.blit(system_details_images['display'], (0, 0))  # отрисовка яйца (убрала отдельный класс,
     # ибо бессмысленно)
     buttons_group.draw(screen)
+    particles.update()
     pygame.display.flip()
+    clock.tick(FPS)
 pygame.quit()
