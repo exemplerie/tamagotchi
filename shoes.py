@@ -100,7 +100,6 @@ class Player(pygame.sprite.Sprite):
         self.__init__(self.lives - 1)
 
     def shoot(self):
-        print(self.shoot_timer)
         now = pygame.time.get_ticks()
         if now - self.shoot_timer > 600:
             self.shoot_timer = now
@@ -242,10 +241,10 @@ def begin():
     global all_sprites, shoes, balls, cookies, player, score, clock, hearts, speed_range, text, screen, running, moves
     running = True
     start_screen()
-    game_over = True
+    new_game = True
     while running:
-        if game_over:
-            game_over = False
+        if new_game:
+            new_game = False
             all_sprites = pygame.sprite.Group()
             shoes = pygame.sprite.Group()
             balls = pygame.sprite.Group()
@@ -287,7 +286,7 @@ def begin():
             Shoe()
         if player.lives == 0:
             start_screen(game_over=True)
-            game_over = True
+            new_game = True
 
         screen.fill(pygame.Color('black'))
         screen.blit(background, background_rect)
