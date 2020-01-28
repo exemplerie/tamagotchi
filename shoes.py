@@ -43,7 +43,8 @@ def start_screen(game_over=False):
         intro_text = ["GAME OVER",
                       "Нажмите Esc для выхода ",
                       "или Enter, чтобы начать заново"]
-        global score, text, font
+        global score, text, font, common_score
+        common_score += score
         score = 0
         text = font.render(str(score), 1, pygame.Color('black'))
     fon = pygame.transform.scale(images['fon2'], (350, 400))
@@ -228,6 +229,7 @@ hearts = pygame.sprite.Group()
 player = Player()
 all_sprites.add(player)
 score = 0
+common_score = 0
 lifes = Lives()
 speed_range = (1, 3)
 moves = None
@@ -238,7 +240,8 @@ text = font.render(str(score), 1, pygame.Color('black'))
 
 
 def begin():
-    global all_sprites, shoes, balls, cookies, player, score, clock, hearts, speed_range, text, screen, running, moves
+    global all_sprites, shoes, balls, cookies, player, score, clock, \
+        hearts, speed_range, text, screen, running, moves, common_score
     running = True
     start_screen()
     new_game = True
@@ -260,6 +263,7 @@ def begin():
         moves = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT or moves[pygame.K_ESCAPE]:
+                common_score += score
                 running = False
 
         all_sprites.update()
@@ -299,3 +303,4 @@ def begin():
         screen.blit(text, (330, 280))
         screen.blit(egg, (0, 0))
         pygame.display.flip()
+    return common_score

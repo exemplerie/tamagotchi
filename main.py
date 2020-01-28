@@ -65,7 +65,8 @@ class Player(pygame.sprite.Sprite):
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
         self.rect.center = SCREEN_RECT[0] + SIDE // 2, SCREEN_RECT[1] + SIDE // 2 + 20
-        if LEVELS[age] == 'Baby':
+        if LEVELS[age] == \
+                'Baby':
             self.rect = self.rect.move(0, 30)
             if self.state != 'main':
                 self.image = pygame.transform.scale(self.image, (100, 100))
@@ -102,7 +103,7 @@ class Needs:
         screen.blit(self.image, (470, 270 + 25 * self.h))
 
     def fill(self, plus):  # заполняет нужды
-        if plus > 0 and self.value < 100:
+        if plus > 0 and self.value < 96.5:
             experience_scale.update(plus / 2)
         self.value = self.value + plus
 
@@ -148,7 +149,7 @@ class Particle(pygame.sprite.Sprite):
 
 class XP:  # шкала опыта (для достижения новых уровней (возрастов))
     def __init__(self):
-        self.value = 0
+        self.value = 95
 
     def render(self):
         pygame.draw.rect(screen, pygame.Color("black"), ((190, 280), (100, 17)), 2)
@@ -156,8 +157,9 @@ class XP:  # шкала опыта (для достижения новых ур�
 
     def update(self, xp=0):
         self.value += xp
-        if self.value > 100:
-            self.value = 100
+        if self.value >= 100:
+            self.value = 0
+            new_level()
         self.render()
 
 
@@ -217,12 +219,12 @@ def choose_game(mouse_pos, click=False):
     rect = image.get_rect().move(310, 535)
     screen.blit(image, (310, 525))
     if click and rect.collidepoint(mouse_pos):
+        print(happiness.value)
         if games[num_game] == 'shoes':
-            shoes.begin()
-            happiness.fill(10)
+            happiness.fill(shoes.begin())
         if games[num_game] == 'snake':
-            snake.begin()
-            happiness.fill(10)
+            happiness.fill(snake.begin())
+            print(happiness.value)
 
 
 def click_processing(btn):  # вынесла обработку нажатий в отдельную функцию сейчас, т.к. все равно
@@ -317,6 +319,11 @@ def create_particles(position):
     numbers = range(-5, 6)
     for _ in range(particle_count):
         Particle(position, random.choice(numbers), random.choice(numbers))
+
+
+def new_level():
+    global age
+    age += 1
 
 
 def terminate():  # выход из программы

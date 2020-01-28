@@ -30,7 +30,7 @@ def game_over(total_score):  # проигрыш
     screen.blit(egg, (0, 0))
 
     while True:
-        global running, moves
+        global running, moves, common_score
         moves = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT or moves[pygame.K_ESCAPE]:
@@ -39,6 +39,7 @@ def game_over(total_score):  # проигрыш
                 running = True
             else:
                 continue
+            common_score += score
             return
         pygame.display.flip()
 
@@ -142,12 +143,13 @@ snake = Snake(pygame.Color("green"))
 food = Food()
 change_to = "RIGHT"
 score = 0
+common_score = 0
 running = True
 moves = None
 
 
 def begin():
-    global snake, food, change_to, score, running
+    global snake, food, change_to, score, running, common_score
     running = True
     new_game = True
     while running:
@@ -188,3 +190,4 @@ def begin():
 
         pygame.display.flip()
         fps.tick(18)
+    return common_score
