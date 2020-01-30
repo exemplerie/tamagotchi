@@ -159,6 +159,7 @@ egg = images['egg']
 egg_mask = pygame.mask.from_surface(egg)
 
 score = 0
+common_score = 0
 font = pygame.font.Font(None, 30)
 text = font.render(str(score), 1, pygame.Color('black'))
 running = True
@@ -166,7 +167,7 @@ moves = None
 
 
 def begin():
-    global running, score, text, new_game, camera, player, all_sprites,\
+    global running, score, common_score, text, new_game, camera, player, all_sprites,\
         player_group, heart_group, tiles_group, box_group
     start_screen()
     while running:
@@ -215,6 +216,7 @@ def begin():
         screen.blit(egg, (0, 0))
 
         if pygame.sprite.groupcollide(player_group, box_group, False, False):
+            common_score += score
             start_screen(game_over=True)
             new_game = True
 
@@ -228,4 +230,4 @@ def begin():
 
         pygame.display.flip()
         clock.tick(FPS)
-    return score
+    return common_score

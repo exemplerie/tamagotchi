@@ -5,6 +5,7 @@ import random
 import shoes
 import snake
 import labirint
+import fly
 
 # верунлись границы комнат
 
@@ -228,6 +229,8 @@ def choose_game(mouse_pos, click=False):
             print(happiness.value)
         if games[num_game] == 'labirint':
             happiness.fill(labirint.begin())
+        if games[num_game] == 'fly':
+            happiness.fill(fly.begin())
 
 
 def click_processing(btn):  # вынесла обработку нажатий в отдельную функцию сейчас, т.к. все равно
@@ -352,8 +355,8 @@ system_details_images = {'arrow_left': load_image('arrow_left.png', -1),
                          'soap': load_image('soap.png', -1)}
 
 game_images = {'shoes': load_image('icons/shoes_game.png', -1), 'snake': load_image('icons/snake_game.png', -1),
-               'labirint': load_image('icons/labirint_game.png', -1)}
-games = ['shoes', 'snake', 'labirint']
+               'labirint': load_image('icons/labirint_game.png', -1), 'fly': load_image('icons/fly_game.png', -1)}
+games = ['shoes', 'snake', 'labirint', 'fly']
 
 food = [load_image('food/banana.png', -1), load_image('food/egg.png', -1), load_image('food/grapes.png', -1),
         load_image('food/salad.png', -1),
