@@ -137,7 +137,7 @@ pygame.display.set_caption('Snake Game')
 
 fps = pygame.time.Clock()
 
-egg = pygame.image.load('data\egg.png').convert_alpha()
+egg = pygame.image.load('data\\egg.png').convert_alpha()
 
 snake = Snake(pygame.Color("green"))
 food = Food()
