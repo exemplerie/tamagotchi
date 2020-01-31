@@ -5,6 +5,48 @@ SIZE = WIDTH, HEIGHT = 670, 800
 SCREEN_RECT = (180, 280, 480, 560)
 SIDE = 330
 
+def start_screen(game_over=False):
+    if not game_over:
+        intro_text = ["Правила игры:",
+                      "Перемещайтесь с помощью стрелок:",
+                      "ВВЕРХ, ВНИЗ, ВПРАВО, ВЛЕВО.",
+                      "Собирайте квадратики и растите.",
+                      "Не сталкивайтесь со стенами."]
+    else:
+        intro_text = ["GAME OVER",
+                      "Нажмите Esc для выхода ",
+                      "или Enter, чтобы начать заново"]
+        global score, text, font, fon
+        score = 0
+        text = font.render(str(score), 1, pygame.Color('black'))
+    fon = pygame.transform.scale(fon, (350, 400))
+    screen.blit(fon, (150, 270))
+    font = pygame.font.Font(None, 25)
+    text_coord = 330
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 185
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+        screen.blit(egg, (0, 0))
+
+    while True:
+        global running, moves
+        moves = pygame.key.get_pressed()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or moves[pygame.K_ESCAPE]:
+                running = False
+                return
+            elif moves[pygame.K_RETURN]:
+                running = True
+            else:
+                continue
+            return
+        pygame.display.flip()
+
 
 def show_score(now_score):  # счет
     s_font = pygame.font.SysFont('monaco', 24)
@@ -12,7 +54,6 @@ def show_score(now_score):  # счет
         'Score: {0}'.format(now_score), True, pygame.Color("white"))
     s_rect = s_surf.get_rect()
     s_rect.midtop = (335, 300)
-    # рисуем прямоугольник поверх surface
     screen.blit(s_surf, s_rect)
 
 
@@ -115,7 +156,7 @@ class Snake:
 
 class Food:
     def __init__(self):
-        self.food_color = pygame.Color("red")
+        self.food_color = pygame.Color(63, 136, 143)
         self.food_size_x = 10
         self.food_size_y = 10
         self.food_pos = [random.randrange(SCREEN_RECT[0], SCREEN_RECT[2]) // 10 * 10,
@@ -133,13 +174,13 @@ pygame.init()
 size = width, height = 670, 800
 
 screen = pygame.display.set_mode(size)
-pygame.display.set_caption('Snake Game')
 
 fps = pygame.time.Clock()
 
 egg = pygame.image.load('data\\egg.png').convert_alpha()
+fon = pygame.image.load('data\\shoes_data\\fon.png').convert_alpha()
 
-snake = Snake(pygame.Color("green"))
+snake = Snake(pygame.Color(255, 204, 0))
 food = Food()
 change_to = "RIGHT"
 score = 0
@@ -149,13 +190,14 @@ moves = None
 
 
 def begin():
+    start_screen()
     global snake, food, change_to, score, running, common_score
     running = True
-    new_game = True
+    new_game = False
     while running:
         if new_game:
             new_game = False
-            snake = Snake(pygame.Color("green"))
+            snake = Snake(pygame.Color(255, 204, 0))
             food = Food()
             change_to = "RIGHT"
             score = 0
@@ -181,7 +223,7 @@ def begin():
         snake.snake_body_mechanism()
         snake.draw_snake(screen, pygame.Color("black"))
         if snake.check_for_boundaries():
-            game_over(score)
+            start_screen(True)
             new_game = True
         screen.blit(egg, (0, 0))
         food.draw_food(screen)

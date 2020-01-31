@@ -6,6 +6,7 @@ import shoes
 import snake
 import labirint
 import fly
+import XO
 
 # верунлись границы комнат
 
@@ -319,6 +320,8 @@ def choose_game(mouse_pos, click=False):
             happiness.fill(labirint.begin())
         if games[num_game] == 'fly':
             happiness.fill(fly.begin())
+        if games[num_game] == 'XO':
+            happiness.fill(XO.begin())
 
 
 def click_processing(btn):  # вынесла обработку нажатий в отдельную функцию сейчас, т.к. все равно
@@ -496,6 +499,7 @@ def terminate():  # выход из программы
 
 
 pygame.init()
+pygame.display.set_caption('Тамагочи')
 
 screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
@@ -514,8 +518,9 @@ system_details_images = {'arrow_left': load_image('arrow_left.png', -1),
                          'wings': load_image('wings.png', -1)}
 
 game_images = {'shoes': load_image('icons/shoes_game.png', -1), 'snake': load_image('icons/snake_game.png', -1),
-               'labirint': load_image('icons/labirint_game.png', -1), 'fly': load_image('icons/fly_game.png', -1)}
-games = ['shoes', 'snake', 'labirint', 'fly']
+               'labirint': load_image('icons/labirint_game.png', -1), 'fly': load_image('icons/fly_game.png', -1),
+               'XO': load_image('icons/X.png', -1)}
+games = ['shoes', 'snake', 'labirint', 'fly', 'XO']
 
 food = [load_image('food/ice-cream.png', -1), load_image('food/fried-egg.png', -1), load_image('food/pizza.png', -1),
         load_image('food/orange.png', -1),
