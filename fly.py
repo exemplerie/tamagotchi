@@ -94,7 +94,7 @@ class Player(pygame.sprite.Sprite):
         elif type_n == 'up':
             self.rect.y -= 20
         elif type_n == 'down_p':
-            self.rect.y += 7
+            self.rect.y += 9
 
 
 class Wall(pygame.sprite.Sprite):
@@ -178,11 +178,14 @@ def begin():
             if wall.rect.x < 140:
                 score += 0.5
                 wall.kill()
-        if pygame.sprite.spritecollideany(play, wall_group):
+        if pygame.sprite.spritecollide(play, wall_group, True, pygame.sprite.collide_mask)\
+                or play.rect.y < 255 or play.rect.y > 580:
             common_score += score
             start_screen(game_over=True)
             new_game = True
         screen.blit(text_score, (330, 280))
+        pygame.draw.rect(screen, pygame.Color('black'), (0, 0, WIDTH, 255))
+        pygame.draw.rect(screen, pygame.Color('black'), (0, 580, WIDTH, HEIGHT))
         screen.blit(egg, (0, 0))
         clock.tick(FPS)
         now += 1
