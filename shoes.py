@@ -279,7 +279,7 @@ def begin():
                 if score % 15:
                     speed_range = speed_range[0] + 1, speed_range[1]
 
-        #  Проверка, не ударил ли моб игрока
+        # тапок ударил хомяка
         booms = pygame.sprite.spritecollide(player, shoes, True, pygame.sprite.collide_mask)
         for boom in booms:
             Cloud((boom.rect.centerx, boom.rect.bottom))

@@ -10,10 +10,69 @@ import fly
 # верунлись границы комнат
 
 SIZE = WIDTH, HEIGHT = 670, 800
-FPS = 80
+FPS = 60
 LEVELS = ['Baby', 'Adult', 'Elder']  # пока не знаю, пригодятся ли, но можно выводить как названия
 SCREEN_RECT = (170, 280, 330, 330)
 SIDE = 330
+
+
+def text_render(message, size, color, bold=False):
+    font = pygame.font.Font("data\\myfont.ttf", size)
+    if bold:
+        font.set_bold(True)
+    newText = font.render(message, 0, color)
+    return newText
+
+
+def game_over():
+    start_gif = [load_image('start_menu\\' + str(x) + '.gif') for x in range(24)]
+    pic = 0
+    white = (213, 48, 50)
+    black = (0, 0, 0)
+    #font = pygame.font.Font("data\\myfont.ttf", size)
+    menu = True
+    selected = "start"
+
+    while menu:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    selected = "start"
+                elif event.key == pygame.K_DOWN:
+                    selected = "quit"
+                if event.key == pygame.K_RETURN:
+                    if selected == "start":
+                        menu = False
+                        return
+                    if selected == "quit":
+                        terminate()
+        screen.fill((0, 0, 0))
+        pygame.draw.rect(screen, pygame.Color(255, 228, 196), ((170, 270), (330, 330)))
+        screen.blit(start_gif[pic], (190, 350))
+        screen.blit(system_details_images['display'], (0, 0))
+        pic = (pic + 1) % len(start_gif)
+        title = text_render("TAMAGOTCHI", 30, black, bold=True)
+        if selected == "start":
+            text_start = text_render("START", 20, white)
+        else:
+            text_start = text_render("START", 20, black)
+        if selected == "quit":
+            text_quit = text_render("QUIT", 20, white)
+        else:
+            text_quit = text_render("QUIT", 20, black)
+
+        title_rect = title.get_rect()
+        start_rect = text_start.get_rect()
+        quit_rect = text_quit.get_rect()
+
+        # Main Menu Text
+        screen.blit(title, (WIDTH / 2 - (title_rect[2] / 2), SCREEN_RECT[1] + 30))
+        screen.blit(text_start, (WIDTH / 2 - (start_rect[2] / 2), SCREEN_RECT[1] + 70))
+        screen.blit(text_quit, (WIDTH / 2 - (quit_rect[2] / 2), SCREEN_RECT[1] + 100))
+        pygame.display.flip()
+        clock.tick(10)
 
 
 def load_image(name, colorkey=None):  # загрузка изображения
@@ -104,7 +163,7 @@ class Player(pygame.sprite.Sprite):
 class Needs:
     def __init__(self, color, h, need_type):
         self.h = h
-        self.value = 80
+        self.value = 2
         self.color = color
         self.need_type = need_type
         icon = load_image('icons\\' + self.need_type + '_icon.png', -1)
@@ -125,8 +184,6 @@ class Needs:
         self.value -= 0.01
         if self.value > 100:
             self.value = 100
-        if self.value <= 0:
-            die()
         self.render()
 
 
@@ -352,15 +409,23 @@ def create_particles(position):
 
 def new_level():
     global actual_state
+    pygame.mouse.set_visible(0)
+    was = tamagotchi.age
     firework_frames = [load_image('firework\\' + str(x) + '.png', -1) for x in range(6)]
     experience_scale.value = 0
+    text = text_render("HAPPY BIRTHDAY!", 25, (0, 0, 0))
+    text_2 = text_render("Нажмите любую клавишу,", 13, (0, 0, 0))
+    text_3 = text_render("чтобы продолжить", 13, (0, 0, 0))
+    text_rect = text.get_rect()
+    text2_rect = text_2.get_rect()
+    text3_rect = text_3.get_rect()
     for n in needs:
         n.value = 80
     iterations = 0
     pic = 0
     while True:
         for e in pygame.event.get():
-            if e.type == pygame.KEYDOWN and tamagotchi.age == 1:
+            if e.type == pygame.KEYDOWN and iterations >= 24:
                 clear_all()
                 return
             if e.type == pygame.QUIT:
@@ -369,9 +434,14 @@ def new_level():
             tamagotchi.age = 0
             tamagotchi.generate_sprite('main', True)
         elif 6 <= iterations <= 24:
-            tamagotchi.age = 1
+            tamagotchi.age = was + 1
             tamagotchi.generate_sprite('main', True)
         room_group.draw(screen)
+        if iterations > 24:
+            screen.blit(text, (WIDTH / 2 - (text_rect[2] / 2), SCREEN_RECT[1] + 10))
+            if iterations > 30:
+                screen.blit(text_2, (WIDTH / 2 - (text2_rect[2] / 2), SCREEN_RECT[1] + 40))
+                screen.blit(text_3, (WIDTH / 2 - (text3_rect[2] / 2), SCREEN_RECT[1] + 60))
         player_group.draw(screen)
         screen.blit(firework_frames[pic], (170, 270))
         screen.blit(system_details_images['display'], (0, 0))
@@ -383,20 +453,36 @@ def new_level():
         clock.tick(10)
 
 
-def die():
+def die(total_end=False):
     iterations = 0
     wings_y = tamagotchi.rect.top - 25
+
+    text = text_render("GAME OVER", 25, (0, 0, 0), bold=True)
+    text_2 = text_render("Нажмите любую клавишу,", 13, (0, 0, 0), bold=True)
+    text_3 = text_render("чтобы вернуться в меню", 13, (0, 0, 0), bold=True)
+    text_rect = text.get_rect()
+    text2_rect = text_2.get_rect()
+    text3_rect = text_3.get_rect()
     while True:
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 terminate()
+            if e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_RETURN:
+                    return
         room_group.draw(screen)
         screen.blit(system_details_images['wings'], (223, wings_y))
         player_group.draw(screen)
         screen.blit(system_details_images['display'], (0, 0))
-        if iterations > 10 and tamagotchi.rect.bottom > SCREEN_RECT[1]:
+        if iterations > 10 and tamagotchi.rect.bottom > SCREEN_RECT[1] - 10:
             wings_y -= 5
             tamagotchi.rect = tamagotchi.rect.move(0, -5)
+        elif iterations > 10:
+            if not total_end:
+                screen.blit(text, (WIDTH / 2 - (text_rect[2] / 2), SCREEN_RECT[1] + 80))
+                if iterations > 30:
+                    screen.blit(text_2, (WIDTH / 2 - (text2_rect[2] / 2), SCREEN_RECT[1] + 150))
+                    screen.blit(text_3, (WIDTH / 2 - (text3_rect[2] / 2), SCREEN_RECT[1] + 180))
         if iterations % 3 == 0:
             player_group.update()
         iterations += 1
@@ -436,7 +522,7 @@ food = [load_image('food/ice-cream.png', -1), load_image('food/fried-egg.png', -
         load_image('food/corn.png', -1), load_image('food/hamburger.png', -1)]
 
 room_images = {'kitchen': load_image('kitchen.png'),
-               'bathroom': load_image('bathroom.png'), 'bedroom': load_image('bedroom.jpg'),
+               'bathroom': load_image('bathroom.png'), 'bedroom': load_image('bedroom.png'),
                'hall': load_image('hall.png'), 'gameroom': load_image('gameroom.png')}
 player_image = {'Baby': {'main': [load_image('baby_hamster2.png', -1), 5]},
                 'Adult': {'main': [load_image('hamster.png', -1), 4],
@@ -462,7 +548,7 @@ particles = pygame.sprite.Group()
 #  poop_group = pygame.sprite.Group()
 
 room = Room()
-tamagotchi = Player()
+tamagotchi = None
 left_btn = Buttons('arrow_left', 160, 630)  # в функции потом очень удобно проверять, какая кнопка нажата
 right_btn = Buttons('arrow_right', 400, 630)
 main_btn = Buttons('main_button', 295, 640)
@@ -479,7 +565,24 @@ experience_scale = XP()
 count = -1
 pos = None
 running = True
+new_game = True
 while running:
+    if new_game:
+        new_game = False
+        game_over()
+        for n in needs:
+            n.value = 2
+        experience_scale.value = 99
+        actual_state = None
+        num_food = 0
+        num_game = 0
+        cursor = None
+        then = pygame.time.get_ticks()
+        now = pygame.time.get_ticks()
+        room_group.empty()
+        room = Room()
+        player_group.empty()
+        tamagotchi = Player()
     for event in pygame.event.get():
         pos = pygame.mouse.get_pos()  # позиция мышки
         if event.type == pygame.QUIT:
@@ -496,11 +599,18 @@ while running:
     screen.fill((0, 0, 0))
     room_group.draw(screen)
     player_group.draw(screen)
-    if count % 30 == 0:
+    if count % 15 == 0:
         player_group.update()
     if experience_scale.value >= 100:
         new_level()
-    generate_state(pos)
+    if pos:
+        generate_state(pos)
+    if any(n.value <= 0 for n in needs):
+        die()
+        new_game = True
+    elif tamagotchi.age == 2 and experience_scale.value == 100:
+        die(total_end=True)
+        new_game = True
     particles.draw(screen)
     screen.blit(system_details_images['display'], (0, 0))  # отрисовка яйца (убрала отдельный класс,
     # ибо бессмысленно)
