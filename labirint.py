@@ -65,7 +65,7 @@ def start_screen(game_over=False):
         pygame.display.flip()
 
 
-def load_level(filename):
+def load_level(filename):  # загрузка уровня
     filename = "data/" + filename
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
@@ -73,7 +73,7 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
-class Tile(pygame.sprite.Sprite):
+class Tile(pygame.sprite.Sprite):  # создание спрайтов
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites)
         self.image = images[tile_type]
@@ -85,14 +85,14 @@ class Tile(pygame.sprite.Sprite):
             self.add(heart_group)
 
 
-class Player(pygame.sprite.Sprite):
+class Player(pygame.sprite.Sprite):  # класс игрока
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
         self.image = images['persona']
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
-def generate_level(level):
+def generate_level(level):  # обработка карты уровня
     new_player, x, y = None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
@@ -109,7 +109,7 @@ def generate_level(level):
     return new_player, x, y
 
 
-class Camera:
+class Camera:  # класс камеры
     def __init__(self, size):
         self.dx = 0
         self.dy = 0
@@ -168,7 +168,7 @@ moves = None
 
 def begin():
     global running, score, common_score, text, new_game, camera, player, all_sprites,\
-        player_group, heart_group, tiles_group, box_group
+        player_group, heart_group, tiles_group, box_group, list_level, lev, level_x, level_y
     start_screen()
     while running:
         if new_game:

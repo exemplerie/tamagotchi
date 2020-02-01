@@ -10,33 +10,33 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
 
-class Xod(pygame.sprite.Sprite):
+class Xod(pygame.sprite.Sprite):  # создание персонажа на поле
     def __init__(self, image, x, y):
         super().__init__(all_sprites)
         self.image = images[image]
         self.rect = self.image.get_rect().move(x, y)
 
 
-class Board(pygame.sprite.Sprite):
+class Board(pygame.sprite.Sprite):  # создание игрового поля
     def __init__(self):
         super().__init__(all_sprites)
         self.width = 3
         self.height = 3
         self.cell_size = 111
 
-    def render(self):
+    def render(self):  # отрисовка поля
         for y in range(self.height):
             for x in range(self.width):
                 pygame.draw.rect(screen, pygame.Color('black'),
                                  (x * self.cell_size + 168, y * self.cell_size + 257, self.cell_size, self.cell_size),
                                  5)
 
-    def get_click(self, mouse_pos):
+    def get_click(self, mouse_pos):  # обработка нажатия
         global now_xod, board_icons, now_icons, progress, common_score
         cell_x = (mouse_pos[0] - 168) // self.cell_size
         cell_y = (mouse_pos[1] - 257) // self.cell_size
 
-        if now_xod == 'hamster':
+        if now_xod == 'hamster':  # ход игока
             if not (cell_x < 0 or cell_x >= self.width or cell_y < 0 or cell_y >= self.height)\
                     and board_icons[cell_y][cell_x] == 0:
                 progress += 1
@@ -51,7 +51,7 @@ class Board(pygame.sprite.Sprite):
 
                 now_xod = 'shoe'
                 now_icons = images[now_xod]
-        elif now_xod == 'shoe':
+        elif now_xod == 'shoe':  # ход игры
             progress += 1
             cell_x, cell_y = random_choice()
             x = cell_x * self.cell_size + 168
@@ -65,7 +65,7 @@ class Board(pygame.sprite.Sprite):
             now_icons = images[now_xod]
 
 
-def random_choice():
+def random_choice():  # выбор клетки для голубого хомяка
     x = random.randint(0, 2)
     y = random.randint(0, 2)
     choice = True
@@ -90,7 +90,7 @@ def load_image(name, colorkey=None):  # загрузка изображения
     return image
 
 
-def stop(board):
+def stop(board):  # проверка на выигрыш
     global running
     if board[0][0] == board[1][0] and board[1][0] == board[2][0] and board[0][0] != 0 or\
             board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[0][1] != 0 or\
@@ -101,7 +101,7 @@ def stop(board):
             board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[0][0] != 0 or\
             board[2][0] == board[1][1] and board[1][1] == board[0][2] and board[2][0] != 0:
         start_screen(True)
-    if progress == 9:
+    if progress == 9:  # если нет больше свободных клеток
         running = False
         start_screen(True)
 

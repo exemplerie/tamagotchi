@@ -13,7 +13,7 @@ clock = pygame.time.Clock()
 
 
 def load_image(name, colorkey=None):  # загрузка изображения
-    fullname = os.path.join('data\\shoes_data', name)
+    fullname = os.path.join('data\\games_data', name)
     image = pygame.image.load(fullname).convert()
     if colorkey is not None:
         if colorkey == -1:
@@ -38,7 +38,7 @@ def start_screen(game_over=False):
         global score, text, font
         score = 0
         text = font.render(str(score), 1, pygame.Color('black'))
-    fon = pygame.transform.scale(images['fon'], (350, 400))
+    fon = pygame.transform.scale(images['fon2'], (350, 400))
     screen.blit(fon, (150, 270))
     font = pygame.font.Font(None, 25)
     text_coord = 330
@@ -67,7 +67,7 @@ def start_screen(game_over=False):
         pygame.display.flip()
 
 
-class Player(pygame.sprite.Sprite):
+class Player(pygame.sprite.Sprite):  # класс игрока
     def __init__(self, sheet, columns, rows):
         super().__init__(all_sprites)
         self.frames = []
@@ -76,7 +76,7 @@ class Player(pygame.sprite.Sprite):
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(170, 350)
 
-    def cut_sheet(self, sheet, columns, rows):
+    def cut_sheet(self, sheet, columns, rows):  # анимация
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
                                 sheet.get_height() // rows)
         for j in range(rows):
@@ -85,19 +85,19 @@ class Player(pygame.sprite.Sprite):
                 self.frames.append(sheet.subsurface(pygame.Rect(
                     frame_location, self.rect.size)))
 
-    def update(self, type_n):
-        if now % 3 == 0:
+    def update(self, type_n):  # перемещение спрайта
+        if now % 3 == 0:  # обновление спрайта
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
             self.image = self.frames[self.cur_frame]
-        if type_n == 'down':
+        if type_n == 'down':  # постоянное падение игрока
             self.rect.y += 2
-        elif type_n == 'up':
+        elif type_n == 'up':  # взлет
             self.rect.y -= 20
-        elif type_n == 'down_p':
+        elif type_n == 'down_p':  # вынужденный спуск
             self.rect.y += 9
 
 
-class Wall(pygame.sprite.Sprite):
+class Wall(pygame.sprite.Sprite):  # создание труб
     def __init__(self, type_sprite, y):
         super().__init__(wall_group, all_sprites)
         self.image = images[type_sprite]
@@ -106,12 +106,12 @@ class Wall(pygame.sprite.Sprite):
         else:
             self.rect = self.image.get_rect().move(490, y)
 
-    def update(self):
+    def update(self):  # перемещение труб
         self.rect.x -= 5
 
 
 images = {'player': load_image('Pepper.png', -1), 'egg': load_image('egg.png', -1),
-          'fon': load_image('fon.png'), 'fon2': load_image('fon2.jpg'), 'up': load_image('up.png', -1),
+          'fon': load_image('clouds.jpg'), 'fon2': load_image('fon2.jpg'), 'up': load_image('up.png', -1),
           'down': load_image('down.png', -1)}
 
 all_sprites = pygame.sprite.Group()
