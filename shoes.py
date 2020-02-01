@@ -32,10 +32,10 @@ def cut_sheet(lst, sheet, columns, rows):
                 frame_location, rect.size)))
 
 
-def start_screen(game_over=False):
+def start_screen(game_over=False):  # начальное окно
     if not game_over:
         intro_text = ["Space - выстрел",
-                      "Движение - стрелки вправо, влево,",
+                      "Движение - стрелки вправо, влево.",
                       "Ловите печеньки!",
                       "Нажмите Enter",
                       "для начала игры"]
@@ -76,7 +76,7 @@ def start_screen(game_over=False):
         pygame.display.flip()
 
 
-class Player(pygame.sprite.Sprite):
+class Player(pygame.sprite.Sprite):  # хомяк (игрок)
     def __init__(self, lives=3):
         super().__init__(all_sprites)
         self.orig_image = pygame.transform.scale(images['player'], (50, 38))
@@ -86,7 +86,7 @@ class Player(pygame.sprite.Sprite):
         self.lives = lives
         self.shoot_timer = pygame.time.get_ticks()
 
-    def update(self):
+    def update(self):  # передвижение
         global moves
         if moves[pygame.K_LEFT] and self.rect.left > 175:
             self.rect.x += -5
@@ -95,23 +95,23 @@ class Player(pygame.sprite.Sprite):
         if moves[pygame.K_SPACE]:
             self.shoot()
 
-    def die(self):
+    def die(self):  # смерть
         for s in shoes:
             s.kill()
         self.__init__(self.lives - 1)
 
-    def shoot(self):
+    def shoot(self):  # выстрел
         now = pygame.time.get_ticks()
         if now - self.shoot_timer > 600:
             self.shoot_timer = now
             Ball(self.rect.centerx, self.rect.top)
 
-    def catch_cookie(self):
+    def catch_cookie(self):  # печенька (бонус)
         if self.lives < 3:
             self.lives += 1
 
 
-class Shoe(pygame.sprite.Sprite):
+class Shoe(pygame.sprite.Sprite):  # тапки (враги)
     def __init__(self):
         super().__init__(shoes, all_sprites)
         self.image_orig = images['shoe']
@@ -125,7 +125,7 @@ class Shoe(pygame.sprite.Sprite):
         self.rot_speed = random.randrange(-5, 5)
         self.timer = pygame.time.get_ticks()
 
-    def rotate(self):
+    def rotate(self):  # их вращение
         now = pygame.time.get_ticks()
         if now - self.timer > 50:
             self.timer = now
@@ -146,7 +146,7 @@ class Shoe(pygame.sprite.Sprite):
             self.kill()
 
 
-class Ball(pygame.sprite.Sprite):
+class Ball(pygame.sprite.Sprite):  # мячик
     def __init__(self, x, y):
         super().__init__(balls, all_sprites)
         self.image = images['ball']
@@ -162,7 +162,7 @@ class Ball(pygame.sprite.Sprite):
             self.kill()
 
 
-class Cookie(pygame.sprite.Sprite):
+class Cookie(pygame.sprite.Sprite):  # печенька (бонусная жизнь)
     def __init__(self, coords):
         super().__init__(cookies, all_sprites)
         self.image = images['cookie']
@@ -180,7 +180,7 @@ class Cookie(pygame.sprite.Sprite):
             self.kill()
 
 
-class Cloud(pygame.sprite.Sprite):
+class Cloud(pygame.sprite.Sprite):  # взрывы
     def __init__(self, center):
         super().__init__(all_sprites)
         self.image = clouds[0]
@@ -201,7 +201,7 @@ class Cloud(pygame.sprite.Sprite):
                 self.rect = self.image.get_rect().move(self.rect.x, self.rect.y)
 
 
-class Lives(pygame.sprite.Sprite):
+class Lives(pygame.sprite.Sprite):  # жизни
     def __init__(self):
         super().__init__(hearts, all_sprites)
         self.image = images['heart']
@@ -254,6 +254,7 @@ def begin():
             cookies = pygame.sprite.Group()
             player = Player()
             all_sprites.add(player)
+            speed_range = (1, 3)
             for i in range(8):
                 Shoe()
             score = 0
@@ -268,6 +269,7 @@ def begin():
 
         all_sprites.update()
 
+        # мячик попал по тапку
         booms = pygame.sprite.groupcollide(shoes, balls, True, True, pygame.sprite.collide_mask)
         for boom in booms:
             score += 1
@@ -286,6 +288,7 @@ def begin():
             Shoe()
             player.die()
 
+        # поддержание тапков на экране
         if len(shoes) < 5:
             Shoe()
         if player.lives == 0:

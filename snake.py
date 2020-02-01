@@ -5,8 +5,9 @@ SIZE = WIDTH, HEIGHT = 670, 800
 SCREEN_RECT = (180, 280, 480, 560)
 SIDE = 330
 
-def start_screen(game_over=False):
-    if not game_over:
+
+def start_screen(end_game=False):
+    if not end_game:
         intro_text = ["Правила игры:",
                       "Перемещайтесь с помощью стрелок:",
                       "ВВЕРХ, ВНИЗ, ВПРАВО, ВЛЕВО.",
@@ -187,7 +188,6 @@ score = 0
 common_score = 0
 running = True
 moves = None
-
 
 def begin():
     start_screen()

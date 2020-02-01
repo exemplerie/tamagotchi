@@ -179,11 +179,11 @@ def begin():
             player_group = pygame.sprite.Group()
             heart_group = pygame.sprite.Group()
 
-            list_level = ["level.txt", "level2.txt", "level3.txt", "level4.txt", "level5.txt"]
-            lev = random.choice(list_level)
-            player, level_x, level_y = generate_level(load_level(lev))
+            new_list_level = ["level.txt", "level2.txt", "level3.txt", "level4.txt", "level5.txt"]
+            level = random.choice(new_list_level)
+            player, level_x1, level_y1 = generate_level(load_level(level))
 
-            camera = Camera((level_x, level_y))
+            camera = Camera((level_x1, level_y1))
 
             score = 0
         for event in pygame.event.get():
@@ -198,6 +198,9 @@ def begin():
                     player.rect = player.rect.move(+50, 0)
                 if event.key == K_LEFT:
                     player.rect = player.rect.move(-50, 0)
+                if event.key == pygame.K_ESCAPE:
+                    common_score += score
+                    running = False
 
         # изменяем ракурс камеры
         camera.update(player)
