@@ -32,7 +32,7 @@ class Board(pygame.sprite.Sprite):
                                  5)
 
     def get_click(self, mouse_pos):
-        global now_xod, board_icons, now_icons, progress, common_score
+        global now_xod, board_icons, now_icons, progress
         cell_x = (mouse_pos[0] - 168) // self.cell_size
         cell_y = (mouse_pos[1] - 257) // self.cell_size
 
@@ -40,7 +40,6 @@ class Board(pygame.sprite.Sprite):
             if not (cell_x < 0 or cell_x >= self.width or cell_y < 0 or cell_y >= self.height)\
                     and board_icons[cell_y][cell_x] == 0:
                 progress += 1
-                common_score += 1
 
                 x = cell_x * self.cell_size + 168
                 y = cell_y * self.cell_size + 257
@@ -103,11 +102,11 @@ def stop(board):
         start_screen(True)
     if progress == 9:
         running = False
-        start_screen(True)
+        start_screen(True, winner=False)
 
 
-def start_screen(game_over=False):
-    global text, font, new_game
+def start_screen(game_over=False, winner=True):
+    global text, font, new_game, common_score
 
     if not game_over:
         intro_text = ["Правила игры:",
@@ -123,14 +122,16 @@ def start_screen(game_over=False):
         font = pygame.font.Font(None, 23)
         text_coord = 285
     else:
+        intro_text = ["",
+                      "Нажмите Esc для выхода ",
+                      "или Enter, чтобы начать заново"]
         if now_xod == 'hamster':
-            intro_text = ["GAME OVER",
-                          "Нажмите Esc для выхода ",
-                          "или Enter, чтобы начать заново"]
+            intro_text[0] = "GAME OVER"
+        elif not winner:
+            intro_text[0] = "НИЧЬЯ"
         else:
-            intro_text = ["ВЫ ВЫЙГРАЛИ!!!",
-                          "Нажмите Esc для выхода ",
-                          "или Enter, чтобы начать заново"]
+            intro_text[0] = "ВЫ ВЫИГРАЛИ!!!"
+            common_score += 3
         font = pygame.font.Font(None, 25)
         text_coord = 330
     new_game = True
@@ -194,6 +195,7 @@ def begin():
     global running, common_score, new_game, hamster_group, boots_group, icons, now_xod, all_sprites, board_icons,\
         progress, now_icons
     start_screen()
+    common_score = 0
 
     while running:
         if new_game:
@@ -215,6 +217,9 @@ def begin():
                 stop(board_icons)
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
 
         screen.fill(pygame.Color('black'))
         screen.blit(background, background_rect)
@@ -224,4 +229,5 @@ def begin():
         screen.blit(text, (230, 670))
         screen.blit(now_icons, (285, 630))
         pygame.display.flip()
+    print(common_score)
     return common_score

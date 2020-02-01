@@ -13,7 +13,7 @@ clock = pygame.time.Clock()
 
 
 def load_image(name, colorkey=None):  # загрузка изображения
-    fullname = os.path.join('data\\shoes_data', name)
+    fullname = os.path.join('data\\games_data', name)
     image = pygame.image.load(fullname).convert()
     if colorkey is not None:
         if colorkey == -1:
@@ -39,6 +39,7 @@ def start_screen(game_over=False):
         score = 0
         text = font.render(str(score), 1, pygame.Color('black'))
     fon = pygame.transform.scale(images['fon'], (350, 400))
+    screen.fill((0, 0, 0))
     screen.blit(fon, (150, 270))
     font = pygame.font.Font(None, 25)
     text_coord = 330
@@ -159,6 +160,9 @@ def begin():
                     play.update('up')
                 if event.key == K_DOWN:
                     play.update('down_p')
+                if event.key == pygame.K_ESCAPE:
+                    common_score += score
+                    running = False
 
         screen.fill((0, 0, 0))
         screen.blit(background, background_rect)
