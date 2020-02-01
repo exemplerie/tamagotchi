@@ -178,7 +178,7 @@ screen = pygame.display.set_mode(size)
 fps = pygame.time.Clock()
 
 egg = pygame.image.load('data\\egg.png').convert_alpha()
-fon = pygame.image.load('data\\shoes_data\\fon.png').convert_alpha()
+fon = pygame.image.load('data\\games_data\\fon.png').convert_alpha()
 
 snake = Snake(pygame.Color(255, 204, 0))
 food = Food()

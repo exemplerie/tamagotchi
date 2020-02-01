@@ -79,7 +79,7 @@ def random_choice():
 
 
 def load_image(name, colorkey=None):  # загрузка изображения
-    fullname = os.path.join('data\\shoes_data', name)
+    fullname = os.path.join('data\\games_data', name)
     image = pygame.image.load(fullname).convert()
     if colorkey is not None:
         if colorkey == -1:
