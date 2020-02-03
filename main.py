@@ -7,6 +7,7 @@ import snake
 import labirint
 import fly
 import XO
+import tetris
 
 # верунлись границы комнат
 
@@ -208,7 +209,7 @@ class XP:  # шкала опыта (для достижения новых ур�
     def __init__(self):
         self.value = 0
 
-    def render(self):  # исовка
+    def render(self):  # рисовка
         pygame.draw.rect(screen, pygame.Color("black"), ((190, 280), (100, 17)), 2)
         if self.value > 1:
             pygame.draw.rect(screen, pygame.Color("purple"), ((193, 283), (95 / 100 * self.value, 12)))
@@ -333,6 +334,8 @@ def choose_game(mouse_pos, click=False):
             happiness.fill(fly.begin())
         if games[num_game] == 'XO':
             happiness.fill(XO.begin())
+        if games[num_game] == 'tetris':
+            happiness.fill(tetris.begin())
 
 
 def click_processing(btn):  # обработка нажатий
@@ -560,8 +563,8 @@ system_details_images = {'arrow_left': load_image('arrow_left.png', -1),
 
 game_images = {'shoes': load_image('icons/shoes_game.png', -1), 'snake': load_image('icons/snake_game.png', -1),
                'labirint': load_image('icons/labirint_game.png', -1), 'fly': load_image('icons/fly_game.png', -1),
-               'XO': load_image('icons/tic-tac-toe_game.png', -1)}
-games = ['shoes', 'snake', 'labirint', 'fly', 'XO']
+               'XO': load_image('icons/tic-tac-toe_game.png', -1), 'tetris': load_image('icons/tetris_game.png', -1)}
+games = ['shoes', 'snake', 'labirint', 'fly', 'XO', 'tetris']
 
 food = [load_image('food/ice-cream.png', -1), load_image('food/fried-egg.png', -1), load_image('food/pizza.png', -1),
         load_image('food/orange.png', -1),
@@ -656,7 +659,7 @@ while running:
     screen.fill((0, 0, 0))
     room_group.draw(screen)
     player_group.draw(screen)
-    if count % 15 == 0:  # обновление спарйта
+    if count % 15 == 0:  # обновление спрайта
         player_group.update()
     if experience_scale.value >= 100:  # конец игры
         if tamagotchi.age == 2:
