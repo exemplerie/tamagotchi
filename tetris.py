@@ -391,3 +391,4 @@ fps = pygame.time.Clock()
 
 def begin():
     start_screen()
+    return common_score
