@@ -23,6 +23,15 @@ def load_image(name, colorkey=None):  # загрузка изображения
     return image
 
 
+def show_score(now_score):  # счет
+    l_font = pygame.font.SysFont('monaco', 24)
+    surf = l_font.render(
+        'Score: {0}'.format(now_score), True, pygame.Color("white"))
+    rect = surf.get_rect()
+    rect.midtop = (335, 300)
+    screen.blit(surf, rect)
+
+
 def start_screen(game_over=False):
     if not game_over:
         intro_text = ["Правила игры:",
@@ -33,9 +42,7 @@ def start_screen(game_over=False):
         intro_text = ["GAME OVER",
                       "Нажмите Esc для выхода ",
                       "или Enter, чтобы начать заново"]
-        global score, text, font
-        score = 0
-        text = font.render(str(score), 1, pygame.Color('black'))
+        global font
     fon = pygame.transform.scale(images['fon'], (350, 400))
     screen.blit(fon, (150, 270))
     font = pygame.font.Font(None, 25)
@@ -161,15 +168,15 @@ egg_mask = pygame.mask.from_surface(egg)
 score = 0
 common_score = 0
 font = pygame.font.Font(None, 30)
-text = font.render(str(score), 1, pygame.Color('black'))
 running = True
 moves = None
 
 
 def begin():
-    global running, score, common_score, text, new_game, camera, player, all_sprites,\
+    global running, score, common_score, new_game, camera, player, all_sprites, \
         player_group, heart_group, tiles_group, box_group, list_level, lev, level_x, level_y
     start_screen()
+    common_score = 0
     while running:
         if new_game:
             new_game = False
@@ -228,8 +235,7 @@ def begin():
                 heart.kill()
                 score += 1
 
-        text = font.render(str(score), 1, pygame.Color('black'))
-        screen.blit(text, (330, 280))
+        show_score(score)
 
         pygame.display.flip()
         clock.tick(FPS)

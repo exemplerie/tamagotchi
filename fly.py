@@ -3,7 +3,6 @@ import os
 import random
 from pygame.locals import K_UP, K_DOWN
 
-
 SIZE = WIDTH, HEIGHT = 670, 800
 FPS = 20
 
@@ -24,7 +23,17 @@ def load_image(name, colorkey=None):  # загрузка изображения
     return image
 
 
+def show_score(now_score):  # счет
+    l_font = pygame.font.SysFont('monaco', 24)
+    surf = l_font.render(
+        'Score: {0}'.format(now_score), True, pygame.Color("black"))
+    rect = surf.get_rect()
+    rect.midtop = (335, 300)
+    screen.blit(surf, rect)
+
+
 def start_screen(game_over=False):
+    screen.fill((0, 0, 0))
     if not game_over:
         intro_text = ["Правила игры:",
                       "Перемещайтесь с помощью стрелок:",
@@ -35,13 +44,11 @@ def start_screen(game_over=False):
         intro_text = ["GAME OVER",
                       "Нажмите Esc для выхода ",
                       "или Enter, чтобы начать заново"]
-        global score, text, font
-        score = 0
-        text = font.render(str(score), 1, pygame.Color('black'))
     fon = pygame.transform.scale(images['fon2'], (350, 400))
     screen.blit(fon, (150, 270))
-    font = pygame.font.Font(None, 25)
+
     text_coord = 330
+    font = pygame.font.Font(None, 25)
     for line in intro_text:
         string_rendered = font.render(line, 1, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
@@ -131,28 +138,27 @@ common_score = 0
 now = 0
 running = True
 moves = None
-new_game = False
-
-font = pygame.font.Font(None, 30)
-text = font.render(str(score), 1, pygame.Color('black'))
 
 
 def begin():
-    global running, new_game, play, all_sprites, player_group, wall_group, score, common_score, now
+    global running, play, all_sprites, player_group, wall_group, score, common_score, now
     start_screen()
+    common_score = 0
+    new_game = True
     while running:
         if new_game:
             new_game = False
             all_sprites = pygame.sprite.Group()
             wall_group = pygame.sprite.Group()
-            player_group = pygame.sprite.Group()
+            player_group.empty()
             play = Player(images['player'], 4, 1)
             Wall('up', 190)
             Wall('down', 190 + 320)
             score = 0
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                common_score += score
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == K_UP:
@@ -163,11 +169,11 @@ def begin():
         screen.fill((0, 0, 0))
         screen.blit(background, background_rect)
         all_sprites.draw(screen)
+        show_score(int(score))
         player_group.draw(screen)
         play.update('down')
         wall_group.update()
         num = 0
-        text_score = font.render(str(int(score)), 1, pygame.Color('black'))
         for wall in wall_group:
             num += 1
             if num == len(wall_group) and wall.rect.x < 360:
@@ -178,12 +184,11 @@ def begin():
             if wall.rect.x < 140:
                 score += 0.5
                 wall.kill()
-        if pygame.sprite.spritecollide(play, wall_group, True, pygame.sprite.collide_mask)\
+        if pygame.sprite.spritecollide(play, wall_group, True, pygame.sprite.collide_mask) \
                 or play.rect.y < 255 or play.rect.y > 580:
             common_score += score
             start_screen(game_over=True)
             new_game = True
-        screen.blit(text_score, (330, 280))
         pygame.draw.rect(screen, pygame.Color('black'), (0, 0, WIDTH, 255))
         pygame.draw.rect(screen, pygame.Color('black'), (0, 580, WIDTH, HEIGHT))
         screen.blit(egg, (0, 0))

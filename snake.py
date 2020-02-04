@@ -6,8 +6,8 @@ SCREEN_RECT = (180, 280, 480, 560)
 SIDE = 330
 
 
-def start_screen(end_game=False):
-    if not end_game:
+def start_screen(game_over=False):
+    if not game_over:
         intro_text = ["Правила игры:",
                       "Перемещайтесь с помощью стрелок:",
                       "ВВЕРХ, ВНИЗ, ВПРАВО, ВЛЕВО.",
@@ -17,13 +17,15 @@ def start_screen(end_game=False):
         intro_text = ["GAME OVER",
                       "Нажмите Esc для выхода ",
                       "или Enter, чтобы начать заново"]
-        global score, text, font, fon
-        score = 0
-        text = font.render(str(score), 1, pygame.Color('black'))
+        global common_score, score, fon
+        common_score += score
     fon = pygame.transform.scale(fon, (350, 400))
     screen.blit(fon, (150, 270))
     font = pygame.font.Font(None, 25)
     text_coord = 330
+
+    screen.blit(egg, (0, 0))
+
     for line in intro_text:
         string_rendered = font.render(line, 1, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
@@ -50,40 +52,12 @@ def start_screen(end_game=False):
 
 
 def show_score(now_score):  # счет
-    s_font = pygame.font.SysFont('monaco', 24)
-    s_surf = s_font.render(
+    font = pygame.font.SysFont('monaco', 24)
+    surf = font.render(
         'Score: {0}'.format(now_score), True, pygame.Color("white"))
-    s_rect = s_surf.get_rect()
-    s_rect.midtop = (335, 300)
-    screen.blit(s_surf, s_rect)
-
-
-def game_over(total_score):  # проигрыш
-    go_font = pygame.font.SysFont('monaco', 36)
-    go_surf = go_font.render('Game over', True, pygame.Color("red"))
-    go_rect = go_surf.get_rect()
-    go_rect.midtop = (335, 400)
-    screen.blit(go_surf, go_rect)
-    go_surf = go_font.render('Enter - заново', True, pygame.Color("green"))
-    go_rect = go_surf.get_rect()
-    go_rect.midtop = (335, 450)
-    screen.blit(go_surf, go_rect)
-    show_score(total_score)
-    screen.blit(egg, (0, 0))
-
-    while True:
-        global running, moves, common_score
-        moves = pygame.key.get_pressed()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or moves[pygame.K_ESCAPE]:
-                running = False
-            elif moves[pygame.K_RETURN]:
-                running = True
-            else:
-                continue
-            common_score += score
-            return
-        pygame.display.flip()
+    rect = surf.get_rect()
+    rect.midtop = (335, 300)
+    screen.blit(surf, rect)
 
 
 class Snake:
@@ -189,11 +163,12 @@ common_score = 0
 running = True
 moves = None
 
+
 def begin():
-    start_screen()
     global snake, food, change_to, score, running, common_score
-    running = True
-    new_game = False
+    start_screen()
+    common_score = 0
+    new_game = True
     while running:
         if new_game:
             new_game = False
@@ -202,19 +177,18 @@ def begin():
             change_to = "RIGHT"
             score = 0
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                common_score += score
                 running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT or event.key == ord('d'):
+                if event.key == pygame.K_RIGHT:
                     change_to = "RIGHT"
-                elif event.key == pygame.K_LEFT or event.key == ord('a'):
+                elif event.key == pygame.K_LEFT:
                     change_to = "LEFT"
-                elif event.key == pygame.K_UP or event.key == ord('w'):
+                elif event.key == pygame.K_UP:
                     change_to = "UP"
-                elif event.key == pygame.K_DOWN or event.key == ord('s'):
+                elif event.key == pygame.K_DOWN:
                     change_to = "DOWN"
-                elif event.key == pygame.K_ESCAPE:
-                    running = False
         screen.fill(pygame.Color("black"))
 
         snake.change_to = change_to
@@ -223,7 +197,7 @@ def begin():
         snake.snake_body_mechanism()
         snake.draw_snake(screen, pygame.Color("black"))
         if snake.check_for_boundaries():
-            start_screen(True)
+            start_screen(game_over=True)
             new_game = True
         screen.blit(egg, (0, 0))
         food.draw_food(screen)

@@ -37,10 +37,9 @@ class Board(pygame.sprite.Sprite):  # создание игрового поля
         cell_y = (mouse_pos[1] - 257) // self.cell_size
 
         if now_xod == 'hamster':  # ход игока
-            if not (cell_x < 0 or cell_x >= self.width or cell_y < 0 or cell_y >= self.height)\
+            if not (cell_x < 0 or cell_x >= self.width or cell_y < 0 or cell_y >= self.height) \
                     and board_icons[cell_y][cell_x] == 0:
                 progress += 1
-                common_score += 1
 
                 x = cell_x * self.cell_size + 168
                 y = cell_y * self.cell_size + 257
@@ -92,22 +91,22 @@ def load_image(name, colorkey=None):  # загрузка изображения
 
 def stop(board):  # проверка на выигрыш
     global running
-    if board[0][0] == board[1][0] and board[1][0] == board[2][0] and board[0][0] != 0 or\
-            board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[0][1] != 0 or\
-            board[0][2] == board[1][2] and board[1][2] == board[2][2] and board[0][2] != 0 or\
-            board[0][1] == board[0][2] and board[0][2] == board[0][0] and board[0][1] != 0 or\
-            board[1][1] == board[1][2] and board[1][2] == board[1][0] and board[1][1] != 0 or\
-            board[2][1] == board[2][2] and board[2][2] == board[2][0] and board[2][1] != 0 or\
-            board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[0][0] != 0 or\
+    if board[0][0] == board[1][0] and board[1][0] == board[2][0] and board[0][0] != 0 or \
+            board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[0][1] != 0 or \
+            board[0][2] == board[1][2] and board[1][2] == board[2][2] and board[0][2] != 0 or \
+            board[0][1] == board[0][2] and board[0][2] == board[0][0] and board[0][1] != 0 or \
+            board[1][1] == board[1][2] and board[1][2] == board[1][0] and board[1][1] != 0 or \
+            board[2][1] == board[2][2] and board[2][2] == board[2][0] and board[2][1] != 0 or \
+            board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[0][0] != 0 or \
             board[2][0] == board[1][1] and board[1][1] == board[0][2] and board[2][0] != 0:
         start_screen(True)
     if progress == 9:  # если нет больше свободных клеток
         running = False
-        start_screen(True)
+        start_screen(True, winner=False)
 
 
-def start_screen(game_over=False):
-    global text, font, new_game
+def start_screen(game_over=False, winner=True):
+    global text, font, new_game, common_score
 
     if not game_over:
         intro_text = ["Правила игры:",
@@ -123,14 +122,16 @@ def start_screen(game_over=False):
         font = pygame.font.Font(None, 23)
         text_coord = 285
     else:
+        intro_text = ["",
+                      "Нажмите Esc для выхода ",
+                      "или Enter, чтобы начать заново"]
         if now_xod == 'hamster':
-            intro_text = ["GAME OVER",
-                          "Нажмите Esc для выхода ",
-                          "или Enter, чтобы начать заново"]
+            intro_text[0] = "GAME OVER"
+        elif not winner:
+            intro_text[0] = "НИЧЬЯ"
         else:
-            intro_text = ["ВЫ ВЫЙГРАЛИ!!!",
-                          "Нажмите Esc для выхода ",
-                          "или Enter, чтобы начать заново"]
+            intro_text[0] = "ВЫ ВЫИГРАЛИ!!!"
+            common_score += 3
         font = pygame.font.Font(None, 25)
         text_coord = 330
     new_game = True
@@ -166,7 +167,6 @@ images = {'hamster': load_image('X.png', -1), 'shoe': load_image('O.png', -1),
           'egg': load_image('egg.png', -1), 'cookie': load_image('cookie.png', -1),
           'fon': load_image('fon.png'), 'fon2': load_image('fon2.jpg')}
 
-
 egg = images['egg']
 egg_mask = pygame.mask.from_surface(egg)
 background = images['fon']
@@ -185,29 +185,28 @@ boar = Board()
 now_icons = images[now_xod]
 progress = 0
 running = True
-new_game = False
 moves = None
 common_score = 0
 
 
 def begin():
-    global running, common_score, new_game, hamster_group, boots_group, icons, now_xod, all_sprites, board_icons,\
+    global running, common_score, new_game, hamster_group, boots_group, icons, now_xod, all_sprites, board_icons, \
         progress, now_icons
     start_screen()
+    common_score = 0
 
     while running:
         if new_game:
-            if new_game:
-                new_game = False
-                all_sprites = pygame.sprite.Group()
-                hamster_group = pygame.sprite.Group()
-                boots_group = pygame.sprite.Group()
-                icons = pygame.sprite.Group()
-                board_icons.clear()
-                board_icons = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-                now_xod = 'hamster'
-                now_icons = images[now_xod]
-                progress = 0
+            new_game = False
+            all_sprites = pygame.sprite.Group()
+            hamster_group = pygame.sprite.Group()
+            boots_group = pygame.sprite.Group()
+            icons = pygame.sprite.Group()
+            board_icons.clear()
+            board_icons = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+            now_xod = 'hamster'
+            now_icons = images[now_xod]
+            progress = 0
 
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -215,6 +214,9 @@ def begin():
                 stop(board_icons)
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
 
         screen.fill(pygame.Color('black'))
         screen.blit(background, background_rect)

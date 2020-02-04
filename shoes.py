@@ -43,10 +43,8 @@ def start_screen(game_over=False):  # начальное окно
         intro_text = ["GAME OVER",
                       "Нажмите Esc для выхода ",
                       "или Enter, чтобы начать заново"]
-        global score, text, font, common_score
+        global score, common_score
         common_score += score
-        score = 0
-        text = font.render(str(score), 1, pygame.Color('black'))
     fon = pygame.transform.scale(images['fon2'], (350, 400))
     screen.blit(fon, (150, 270))
     font = pygame.font.Font(None, 25)
@@ -74,6 +72,15 @@ def start_screen(game_over=False):  # начальное окно
                 continue
             return
         pygame.display.flip()
+
+
+def show_score(now_score):  # счет
+    font = pygame.font.SysFont('monaco', 24)
+    surf = font.render(
+        'Score: {0}'.format(now_score), True, pygame.Color("white"))
+    rect = surf.get_rect()
+    rect.midtop = (335, 300)
+    screen.blit(surf, rect)
 
 
 class Player(pygame.sprite.Sprite):  # хомяк (игрок)
@@ -235,19 +242,17 @@ speed_range = (1, 3)
 moves = None
 running = True
 
-font = pygame.font.Font(None, 30)
-text = font.render(str(score), 1, pygame.Color('black'))
-
 
 def begin():
     global all_sprites, shoes, balls, cookies, player, score, clock, \
-        hearts, speed_range, text, screen, running, moves, common_score
-    running = True
+        hearts, speed_range, screen, running, moves, common_score
     start_screen()
+    common_score = 0
     new_game = True
     while running:
         if new_game:
             new_game = False
+            score = 0
             all_sprites = pygame.sprite.Group()
             shoes = pygame.sprite.Group()
             balls = pygame.sprite.Group()
@@ -257,7 +262,6 @@ def begin():
             speed_range = (1, 3)
             for i in range(8):
                 Shoe()
-            score = 0
 
         clock.tick(FPS)
 
@@ -273,7 +277,6 @@ def begin():
         booms = pygame.sprite.groupcollide(shoes, balls, True, True, pygame.sprite.collide_mask)
         for boom in booms:
             score += 1
-            text = font.render(str(score), 1, pygame.Color('black'))
             Cloud(boom.rect.center)
             if score % 10 == 0:
                 Cookie(boom.rect.center)
@@ -303,7 +306,7 @@ def begin():
             img_rect.x = 450 - 30 * i
             img_rect.y = 280
             screen.blit(lifes.image, img_rect)
-        screen.blit(text, (330, 280))
+        show_score(score)
         screen.blit(egg, (0, 0))
         pygame.display.flip()
     return common_score
