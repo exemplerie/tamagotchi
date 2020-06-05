@@ -1,7 +1,6 @@
 import pygame
 import os
 import random
-from pygame.locals import K_UP, K_DOWN, K_LEFT, K_RIGHT
 
 SIZE = WIDTH, HEIGHT = 670, 800
 FPS = 30
@@ -24,31 +23,29 @@ def load_image(name, colorkey=None):  # загрузка изображения
 
 
 def show_score(now_score):  # счет
-    l_font = pygame.font.SysFont('monaco', 24)
-    surf = l_font.render(
+    surf = font.render(
         'Score: {0}'.format(now_score), True, pygame.Color("white"))
     rect = surf.get_rect()
     rect.midtop = (335, 300)
     screen.blit(surf, rect)
 
 
-def start_screen(game_over=False):
-    if not game_over:
+def start_screen(win=False):
+    if not win:
         intro_text = ["Правила игры:",
-                      "Перемещайтесь с помощью стрелок.",
-                      "Не наступайте на клетки с коробками.",
-                      "Нажмите Enter для началы игры."]
+                      "Найдите выход из лабиринта,",
+                      "перемещаясь с помощью стрелок.",
+                      "Нажмите Enter для начала ",
+                      "игры или Esc для выхода."]
     else:
-        intro_text = ["GAME OVER",
-                      "Нажмите Esc для выхода ",
-                      "или Enter, чтобы начать заново"]
-        global font
+        intro_text = ["ПОБЕДА!",
+                      "Нажмите Esc для выхода или",
+                      "Enter, чтобы начать заново."]
     fon = pygame.transform.scale(images['fon'], (350, 400))
     screen.blit(fon, (150, 270))
-    font = pygame.font.Font(None, 25)
     text_coord = 330
     for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
+        string_rendered = font.render(line, 1, pygame.Color('white'))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -58,13 +55,14 @@ def start_screen(game_over=False):
         screen.blit(images['egg'], (0, 0))
 
     while True:
-        global running, moves
+        global running, moves, new_game
         moves = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT or moves[pygame.K_ESCAPE]:
                 running = False
                 return
             elif moves[pygame.K_RETURN]:
+                new_game = True
                 running = True
             else:
                 continue
@@ -73,7 +71,7 @@ def start_screen(game_over=False):
 
 
 def load_level(filename):  # загрузка уровня
-    filename = "data/" + filename
+    filename = "data/games_data/levels/" + filename
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
     max_width = max(map(len, level_map))
@@ -88,15 +86,39 @@ class Tile(pygame.sprite.Sprite):  # создание спрайтов
         self.add(tiles_group, all_sprites)
         if tile_type == 'wall':
             self.add(box_group)
-        elif tile_type == 'heart':
-            self.add(heart_group)
+        elif tile_type == 'finish':
+            self.add(finish_group)
 
 
 class Player(pygame.sprite.Sprite):  # класс игрока
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
-        self.image = images['persona']
+        self.image_orig = images['persona']
+        self.image = self.image_orig.copy()
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+        self.x = pos_x
+        self.y = pos_y
+
+    def update(self):  # передвижение с границами уровня и коробками
+        new_image = None
+        if moves[pygame.K_LEFT] and self.x > 0 and level_map[self.y][self.x - 1] != '#':
+            self.rect.x -= tile_width
+            self.x -= 1
+            new_image = pygame.transform.rotate(self.image_orig, 90)
+        elif moves[pygame.K_RIGHT] and self.x < level_x and level_map[self.y][self.x + 1] != '#':
+            self.rect.x += tile_width
+            self.x += 1
+            new_image = pygame.transform.rotate(self.image_orig, -90)
+        elif moves[pygame.K_UP] and self.y > 0 and level_map[self.y - 1][self.x] != '#':
+            self.rect.y -= tile_height
+            self.y -= 1
+            new_image = pygame.transform.rotate(self.image_orig, 0)
+        elif moves[pygame.K_DOWN] and self.y < level_y and level_map[self.y + 1][self.x] != '#':
+            self.rect.y += tile_height
+            self.y += 1
+            new_image = pygame.transform.rotate(self.image_orig, 180)
+        if new_image:
+            self.image = new_image
 
 
 def generate_level(level):  # обработка карты уровня
@@ -111,7 +133,7 @@ def generate_level(level):  # обработка карты уровня
                 Tile('empty', x, y)
                 new_player = Player(x, y)
             elif level[y][x] == '&':
-                Tile('heart', x, y)
+                Tile('finish', x, y)
                 Tile('empty', x, y)
     return new_player, x, y
 
@@ -124,18 +146,7 @@ class Camera:  # класс камеры
 
     def apply(self, obj):
         obj.rect.x += self.dx
-
-        if obj.rect.x < -obj.rect.width:
-            obj.rect.x += (self.size[0] + 1) * obj.rect.width
-
-        if obj.rect.x >= (self.size[0]) * obj.rect.width:
-            obj.rect.x += -obj.rect.width * (1 + self.size[0])
         obj.rect.y += self.dy
-
-        if obj.rect.y < -obj.rect.height:
-            obj.rect.y += (self.size[1] + 1) * obj.rect.height
-        if obj.rect.y >= (self.size[1]) * obj.rect.height:
-            obj.rect.y += -obj.rect.height * (1 + self.size[1])
 
     def update(self, target):
         self.dx = -(target.rect.x + target.rect.w // 2 - 500 // 2)
@@ -144,7 +155,7 @@ class Camera:  # класс камеры
 
 images = {'wall': load_image('box.png', -1), 'empty': load_image('grass.png'),
           'persona': load_image('hamster_lab.png', -1), 'egg': load_image('egg.png', -1),
-          'heart': load_image('heart_lab.png', -1), 'fon': load_image('fon2.jpg')}
+          'finish': load_image('finish.png', -1), 'fon': load_image('background.png')}
 
 tile_width = tile_height = 50
 
@@ -154,27 +165,27 @@ all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
-heart_group = pygame.sprite.Group()
+finish_group = pygame.sprite.Group()
 
-list_level = ["level.txt", "level2.txt", "level3.txt", "level4.txt", "level5.txt"]
+list_level = ["level0.txt", "level1.txt", "level2.txt"]
 lev = random.choice(list_level)
-player, level_x, level_y = generate_level(load_level(lev))
+level_map = load_level(lev)
+player, level_x, level_y = generate_level(level_map)
 
 camera = Camera((level_x, level_y))
 
 egg = images['egg']
 egg_mask = pygame.mask.from_surface(egg)
 
-score = 0
 common_score = 0
-font = pygame.font.Font(None, 30)
+font = pygame.font.Font("data\\myfont.ttf", 15)
 running = True
 moves = None
 
 
 def begin():
-    global running, score, common_score, new_game, camera, player, all_sprites, \
-        player_group, heart_group, tiles_group, box_group, list_level, lev, level_x, level_y
+    global running, common_score, new_game, camera, player, all_sprites, player_group, \
+        finish_group, tiles_group, box_group, list_level, lev, level_x, level_y, level_map, moves
     start_screen()
     common_score = 0
     while running:
@@ -184,30 +195,25 @@ def begin():
             tiles_group = pygame.sprite.Group()
             box_group = pygame.sprite.Group()
             player_group = pygame.sprite.Group()
-            heart_group = pygame.sprite.Group()
+            finish_group = pygame.sprite.Group()
 
-            new_list_level = ["level.txt", "level2.txt", "level3.txt", "level4.txt", "level5.txt"]
-            level = random.choice(new_list_level)
-            player, level_x1, level_y1 = generate_level(load_level(level))
-
+            level = random.choice(list_level)
+            while level == lev:
+                level = random.choice(list_level)
+            lev = level
+            level_map = load_level(lev)
+            player, level_x1, level_y1 = generate_level(level_map)
             camera = Camera((level_x1, level_y1))
 
-            score = 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == K_UP:
-                    player.rect = player.rect.move(0, -50)
-                if event.key == K_DOWN:
-                    player.rect = player.rect.move(0, +50)
-                if event.key == K_RIGHT:
-                    player.rect = player.rect.move(+50, 0)
-                if event.key == K_LEFT:
-                    player.rect = player.rect.move(-50, 0)
                 if event.key == pygame.K_ESCAPE:
-                    common_score += score
                     running = False
+                else:
+                    moves = pygame.key.get_pressed()
+                    player.update()
 
         # изменяем ракурс камеры
         camera.update(player)
@@ -220,22 +226,17 @@ def begin():
         screen.fill((0, 0, 0))
         all_sprites.draw(screen)
         player_group.draw(screen)
-        heart_group.draw(screen)
+        finish_group.draw(screen)
         pygame.draw.rect(screen, pygame.Color('black'), (0, 0, WIDTH, 255))
         pygame.draw.rect(screen, pygame.Color('black'), (500, 0, WIDTH - 500, HEIGHT))
+        pygame.draw.rect(screen, pygame.Color('black'), (0, 590, WIDTH, 255))
+        pygame.draw.rect(screen, pygame.Color('black'), (0, 0, WIDTH - 500, HEIGHT))
         screen.blit(egg, (0, 0))
 
-        if pygame.sprite.groupcollide(player_group, box_group, False, False):
-            common_score += score
-            start_screen(game_over=True)
-            new_game = True
-
-        for heart in heart_group:
-            if pygame.sprite.spritecollideany(heart, player_group):
-                heart.kill()
-                score += 1
-
-        show_score(score)
+        for finish in finish_group:
+            if pygame.sprite.spritecollideany(finish, player_group):
+                common_score += 15
+                start_screen(win=True)
 
         pygame.display.flip()
         clock.tick(FPS)

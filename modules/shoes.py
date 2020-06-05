@@ -34,23 +34,23 @@ def cut_sheet(lst, sheet, columns, rows):
 
 def start_screen(game_over=False):  # начальное окно
     if not game_over:
-        intro_text = ["Space - выстрел",
-                      "Движение - стрелки вправо, влево.",
+        intro_text = ["Перемещайтесь с помощью",
+                      "стрелок ВВЕРХ и ВНИЗ.",
+                      "ПРОБЕЛ - выстрел.",
                       "Ловите печеньки!",
-                      "Нажмите Enter",
-                      "для начала игры"]
+                      "Нажмите Enter для начала",
+                      "игры или Esc для выхода."]
     else:
         intro_text = ["GAME OVER",
-                      "Нажмите Esc для выхода ",
-                      "или Enter, чтобы начать заново"]
+                      "Нажмите Esc для выхода или",
+                      "Enter, чтобы начать заново."]
         global score, common_score
         common_score += score
     fon = pygame.transform.scale(images['fon2'], (350, 400))
     screen.blit(fon, (150, 270))
-    font = pygame.font.Font(None, 25)
     text_coord = 330
     for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
+        string_rendered = font.render(line, 1, pygame.Color('white'))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -75,7 +75,6 @@ def start_screen(game_over=False):  # начальное окно
 
 
 def show_score(now_score):  # счет
-    font = pygame.font.SysFont('monaco', 24)
     surf = font.render(
         'Score: {0}'.format(now_score), True, pygame.Color("white"))
     rect = surf.get_rect()
@@ -218,12 +217,13 @@ class Lives(pygame.sprite.Sprite):  # жизни
 images = {'player': load_image('hamster.png', -1), 'shoe': load_image('boot.png', -1),
           'cloud': load_image('cloud.png', -1), 'egg': load_image('egg.png', -1),
           'ball': load_image('ball.png', -1), 'cookie': load_image('cookie.png', -1),
-          'fon': load_image('fon.png'), 'fon2': load_image('fon2.jpg'), 'heart': load_image('heart.png', -1)}
+          'fon': load_image('fon.png'), 'fon2': load_image('background.png'), 'heart': load_image('heart.png', -1)}
 
 egg = images['egg']
 egg_mask = pygame.mask.from_surface(egg)
 background = images['fon']
 background_rect = background.get_rect().move(150, 255)
+font = pygame.font.Font("data\\myfont.ttf", 15)
 
 clouds = []
 cut_sheet(clouds, images['cloud'], 4, 2)
