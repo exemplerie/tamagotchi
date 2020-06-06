@@ -309,4 +309,4 @@ def begin():
         show_score(score)
         screen.blit(egg, (0, 0))
         pygame.display.flip()
-    return common_score
+    return common_score // 2

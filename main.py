@@ -96,10 +96,13 @@ def menu(pause=False):  # меню
                 terminate()
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_UP:
+                    menu_sound.play()
                     selected = (selected - 1) % len(variants)
                 elif e.key == pygame.K_DOWN:
+                    menu_sound.play()
                     selected = (selected + 1) % len(variants)
                 if e.key == pygame.K_RETURN:
+                    menu_sound.play()
                     if variants[selected] in ["slot1", "slot2", "slot3"]:
                         save_data = Save(variants[selected])
                         if saving:
@@ -351,7 +354,7 @@ def feeding(click=False):  # кормление
             cursor = food_image
     elif click:
         if tamagotchi.rect.collidepoint(mouse_pos):  # наполнение голода и пропадание еды
-            eating_sound.play()
+            random.choice(eating_sounds).play()
             hunger.fill(3)
             food_image.set_alpha(food_image.get_alpha() - 80)
             if food_image.get_alpha() < 60:
@@ -607,9 +610,11 @@ main_music = "data\\music\\main_music.wav"
 pygame.mixer.music.load(main_music)
 hb_sound = pygame.mixer.Sound("data\\music\\happy_birthday_music.wav")
 bubble_sound = pygame.mixer.Sound("data\\music\\bubbling.wav")
-eating_sound = pygame.mixer.Sound("data\\music\\eating.wav")
+eating_sounds = [pygame.mixer.Sound("data\\music\\eating.wav"), pygame.mixer.Sound("data\\music\\eating1.wav"),
+                 pygame.mixer.Sound("data\\music\\eating2.wav")]
 end_sound = pygame.mixer.Sound("data\\music\\ending.wav")
 paradise_sound = pygame.mixer.Sound("data\\music\\paradise.wav")
+menu_sound = pygame.mixer.Sound("data\\music\\menu_selection.wav")
 
 player_group = pygame.sprite.Group()
 buttons_group = pygame.sprite.Group()
