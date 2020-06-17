@@ -9,25 +9,28 @@ SIDE = 330
 def start_screen(game_over=False):
     if not game_over:
         intro_text = ["Правила игры:",
-                      "Перемещайтесь с помощью стрелок:",
-                      "ВВЕРХ, ВНИЗ, ВПРАВО, ВЛЕВО.",
-                      "Собирайте квадратики и растите.",
-                      "Не сталкивайтесь со стенами."]
+                      "Перемещайтесь с помощью ",
+                      "стрелок ВВЕРХ, ВНИЗ, ",
+                      "ВПРАВО, ВЛЕВО.",
+                      "Собирайте квадратики и не",
+                      "сталкивайтесь со стенами.",
+                      "Нажмите Enter для начала ",
+                      "игры или Esc для выхода."]
+
     else:
         intro_text = ["GAME OVER",
-                      "Нажмите Esc для выхода ",
-                      "или Enter, чтобы начать заново"]
+                      "Нажмите Esc для выхода или",
+                      "Enter, чтобы начать заново."]
         global common_score, score, fon
         common_score += score
     fon = pygame.transform.scale(fon, (350, 400))
     screen.blit(fon, (150, 270))
-    font = pygame.font.Font(None, 25)
-    text_coord = 330
+    text_coord = 310
 
     screen.blit(egg, (0, 0))
 
     for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
+        string_rendered = font.render(line, 1, pygame.Color('white'))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -52,7 +55,6 @@ def start_screen(game_over=False):
 
 
 def show_score(now_score):  # счет
-    font = pygame.font.SysFont('monaco', 24)
     surf = font.render(
         'Score: {0}'.format(now_score), True, pygame.Color("white"))
     rect = surf.get_rect()
@@ -100,7 +102,7 @@ class Snake:
             while food_pos in [set(x) for x in self.snake_body]:
                 food_pos = [random.randrange(SCREEN_RECT[0], SCREEN_RECT[2]) // 10 * 10,
                             random.randrange(SCREEN_RECT[1], SCREEN_RECT[3]) // 10 * 10]
-            score += 1
+            score += 5
             food.food_pos = food_pos
         else:
             # если не нашли еду, то убираем последний сегмент
@@ -147,13 +149,12 @@ class Food:
 pygame.init()
 
 size = width, height = 670, 800
-
 screen = pygame.display.set_mode(size)
-
 fps = pygame.time.Clock()
 
-egg = pygame.image.load('data\\egg.png').convert_alpha()
-fon = pygame.image.load('data\\games_data\\fon.png').convert_alpha()
+egg = pygame.image.load('data\\GUI\\egg.png').convert_alpha()
+fon = pygame.image.load('data\\games_data\\background.png').convert_alpha()
+font = pygame.font.Font("data\\myfont.ttf", 15)
 
 snake = Snake(pygame.Color(255, 204, 0))
 food = Food()
@@ -206,4 +207,4 @@ def begin():
 
         pygame.display.flip()
         fps.tick(18)
-    return common_score
+    return common_score // 2

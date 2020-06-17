@@ -24,8 +24,7 @@ def load_image(name, colorkey=None):  # загрузка изображения
 
 
 def show_score(now_score):  # счет
-    l_font = pygame.font.SysFont('monaco', 24)
-    surf = l_font.render(
+    surf = font.render(
         'Score: {0}'.format(now_score), True, pygame.Color("black"))
     rect = surf.get_rect()
     rect.midtop = (335, 300)
@@ -36,10 +35,11 @@ def start_screen(game_over=False):
     screen.fill((0, 0, 0))
     if not game_over:
         intro_text = ["Правила игры:",
-                      "Перемещайтесь с помощью стрелок:",
-                      "ВВЕРХ или ВНИЗ.",
+                      "Перемещайтесь с помощью",
+                      "стрелок ВВЕРХ и ВНИЗ.",
                       "Не касайтсь труб.",
-                      "Нажмите Enter для началы игры."]
+                      "Нажмите Enter для начала ",
+                      "игры или Esc для выхода."]
     else:
         intro_text = ["GAME OVER",
                       "Нажмите Esc для выхода ",
@@ -48,9 +48,8 @@ def start_screen(game_over=False):
     screen.blit(fon, (150, 270))
 
     text_coord = 330
-    font = pygame.font.Font(None, 25)
     for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
+        string_rendered = font.render(line, 1, pygame.Color('white'))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -118,8 +117,9 @@ class Wall(pygame.sprite.Sprite):  # создание труб
 
 
 images = {'player': load_image('Pepper.png', -1), 'egg': load_image('egg.png', -1),
-          'fon': load_image('clouds.jpg'), 'fon2': load_image('fon2.jpg'), 'up': load_image('up.png', -1),
+          'fon': load_image('clouds.jpg'), 'fon2': load_image('background.png'), 'up': load_image('up.png', -1),
           'down': load_image('down.png', -1)}
+font = pygame.font.Font("data\\myfont.ttf", 15)
 
 all_sprites = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()

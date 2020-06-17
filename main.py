@@ -2,13 +2,8 @@ import pygame
 import sys
 import os
 import random
-import shoes
-import snake
-import labirint
-import fly
-import XO
-import tetris
 import shelve
+from modules import shoes, snake, labirint, fly
 
 SIZE = WIDTH, HEIGHT = 670, 800
 FPS = 60
@@ -19,7 +14,7 @@ SIDE = 330
 
 class Save:
     def __init__(self, name_file):
-        self.file = shelve.open(name_file)
+        self.file = shelve.open('saves/' + name_file)
 
     def save(self):
         clear_all()
@@ -93,7 +88,7 @@ def menu(pause=False):  # меню
     saving = False
     if pause:
         variants = ["continue", "save", "return to main menu", "quit"]
-        bubble_sound.stop()
+        pygame.mixer.stop()
 
     while True:
         for e in pygame.event.get():
@@ -101,10 +96,13 @@ def menu(pause=False):  # меню
                 terminate()
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_UP:
+                    menu_sound.play()
                     selected = (selected - 1) % len(variants)
                 elif e.key == pygame.K_DOWN:
+                    menu_sound.play()
                     selected = (selected + 1) % len(variants)
                 if e.key == pygame.K_RETURN:
+                    menu_sound.play()
                     if variants[selected] in ["slot1", "slot2", "slot3"]:
                         save_data = Save(variants[selected])
                         if saving:
@@ -222,7 +220,7 @@ class Needs:  # потребности
 
     def fill(self, plus):  # заполняет нужды
         self.value = self.value + plus
-        if plus > 0 and self.value < 96.5:
+        if plus > 0 and (self.value < 96.5 or self.need_type == 'happiness'):
             experience_scale.fill(plus / 2)
 
     def update(self):  # постоянное понижение нужд
@@ -270,7 +268,7 @@ class Room(pygame.sprite.Sprite):  # комната
 
 class Particle(pygame.sprite.Sprite):  # частицы
     # сгенерируем частицы разного размера
-    fire = [load_image("bubble.png", -1)]
+    fire = [load_image("other/bubble.png", -1)]
     for scale in (5, 10, 20):
         fire.append(pygame.transform.scale(fire[0], (scale, scale)))
 
@@ -356,7 +354,7 @@ def feeding(click=False):  # кормление
             cursor = food_image
     elif click:
         if tamagotchi.rect.collidepoint(mouse_pos):  # наполнение голода и пропадание еды
-            eating_sound.play()
+            random.choice(eating_sounds).play()
             hunger.fill(3)
             food_image.set_alpha(food_image.get_alpha() - 80)
             if food_image.get_alpha() < 60:
@@ -382,10 +380,6 @@ def choose_game(click=False):
             happiness.fill(labirint.begin())
         if games[num_game] == 'fly':
             happiness.fill(fly.begin())
-        if games[num_game] == 'XO':
-            happiness.fill(XO.begin())
-        if games[num_game] == 'tetris':
-            happiness.fill(tetris.begin())
 
 
 def click_processing():  # обработка нажатий
@@ -533,7 +527,7 @@ def die(total_end=False):  # смерть:(
                 terminate()
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_RETURN:
-                    end_sound.stop()
+                    pygame.mixer.stop()
                     menu()
                     return
         room_group.draw(screen)
@@ -577,49 +571,50 @@ pygame.display.set_caption('Тамагочи')
 screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
 
-system_details_images = {'arrow_left': load_image('arrow_left.png', -1),
-                         'arrow_right': load_image('arrow_right.png', -1),
-                         'little_left': load_image('little_left.png', -1),
-                         'little_right': load_image('little_right.png', -1),
-                         'hall_button': load_image('btn.png', -1),
-                         'bathroom_button': load_image('btn5.png', -1),
-                         'bedroom_button': load_image('btn1.png', -1),
-                         'gameroom_button': load_image('btn6.png', -1),
-                         'kitchen_button': load_image('btn2.png', -1),
-                         'display': load_image('egg.png', -1),
-                         'soap': load_image('soap.png', -1),
-                         'wings': load_image('wings.png', -1)}
+system_details_images = {'arrow_left': load_image('GUI/arrow_left.png', -1),
+                         'arrow_right': load_image('GUI/arrow_right.png', -1),
+                         'little_left': load_image('GUI/little_left.png', -1),
+                         'little_right': load_image('GUI/little_right.png', -1),
+                         'hall_button': load_image('GUI/btn.png', -1),
+                         'bathroom_button': load_image('GUI/btn5.png', -1),
+                         'bedroom_button': load_image('GUI/btn1.png', -1),
+                         'gameroom_button': load_image('GUI/btn6.png', -1),
+                         'kitchen_button': load_image('GUI/btn2.png', -1),
+                         'display': load_image('GUI/egg.png', -1),
+                         'soap': load_image('other/soap.png', -1),
+                         'wings': load_image('other/wings.png', -1)}
 
-games = ['shoes', 'snake', 'labirint', 'fly', 'XO', 'tetris']
+games = ['shoes', 'snake', 'labirint', 'fly']
 game_icons = {'shoes': load_image('icons/shoes_game.png', -1), 'snake': load_image('icons/snake_game.png', -1),
-              'labirint': load_image('icons/labirint_game.png', -1), 'fly': load_image('icons/fly_game.png', -1),
-              'XO': load_image('icons/tic-tac-toe_game.png', -1), 'tetris': load_image('icons/tetris_game.png', -1)}
+              'labirint': load_image('icons/labirint_game.png', -1), 'fly': load_image('icons/fly_game.png', -1)}
 
 food = [load_image('food/ice-cream.png', -1), load_image('food/fried-egg.png', -1), load_image('food/pizza.png', -1),
         load_image('food/orange.png', -1),
         load_image('food/corn.png', -1), load_image('food/hamburger.png', -1)]
 
 rooms = ['gameroom', 'bedroom', 'hall', 'kitchen', 'bathroom']
-room_images = {'kitchen': load_image('kitchen.png'),
-               'bathroom': load_image('bathroom.png'), 'bedroom': load_image('bedroom.png'),
-               'hall': load_image('hall.png'), 'gameroom': load_image('gameroom.png')}
+room_images = {'kitchen': load_image('backgrounds/kitchen.png'),
+               'bathroom': load_image('backgrounds/bathroom.png'), 'bedroom': load_image('backgrounds/bedroom.png'),
+               'hall': load_image('backgrounds/hall.png'), 'gameroom': load_image('backgrounds/gameroom.png')}
 
-player_image = {'Baby': {'main': [load_image('baby_hamster2.png', -1), 5]},
-                'Adult': {'main': [load_image('hamster.png', -1), 4],
-                          'sleep': [load_image('hamster_sleep.png', -1), 4],
-                          'sad': [load_image('hamster_sad.png', -1), 2],
-                          'cry': [load_image('hamster_cry.png', -1), 2],
-                          'washing': [load_image('hamster_wash.png', -1), 6]},
-                'Elder': {'main': [load_image('elder-hamster.png', -1), 2],
-                          'sleep': [load_image('elder_hamster_sleep.png', -1), 2]}}
+player_image = {'Baby': {'main': [load_image('hamster_sprites/baby_hamster2.png', -1), 5]},
+                'Adult': {'main': [load_image('hamster_sprites/hamster.png', -1), 4],
+                          'sleep': [load_image('hamster_sprites/hamster_sleep.png', -1), 4],
+                          'sad': [load_image('hamster_sprites/hamster_sad.png', -1), 2],
+                          'cry': [load_image('hamster_sprites/hamster_cry.png', -1), 2],
+                          'washing': [load_image('hamster_sprites/hamster_wash.png', -1), 6]},
+                'Elder': {'main': [load_image('hamster_sprites/elder-hamster.png', -1), 2],
+                          'sleep': [load_image('hamster_sprites/elder_hamster_sleep.png', -1), 2]}}
 
 main_music = "data\\music\\main_music.wav"
 pygame.mixer.music.load(main_music)
 hb_sound = pygame.mixer.Sound("data\\music\\happy_birthday_music.wav")
 bubble_sound = pygame.mixer.Sound("data\\music\\bubbling.wav")
-eating_sound = pygame.mixer.Sound("data\\music\\eating.wav")
+eating_sounds = [pygame.mixer.Sound("data\\music\\eating.wav"), pygame.mixer.Sound("data\\music\\eating1.wav"),
+                 pygame.mixer.Sound("data\\music\\eating2.wav")]
 end_sound = pygame.mixer.Sound("data\\music\\ending.wav")
 paradise_sound = pygame.mixer.Sound("data\\music\\paradise.wav")
+menu_sound = pygame.mixer.Sound("data\\music\\menu_selection.wav")
 
 player_group = pygame.sprite.Group()
 buttons_group = pygame.sprite.Group()
@@ -645,6 +640,7 @@ menu()
 while running:
     mouse_pos = pygame.mouse.get_pos()
     if new_game:  # начало новой игры
+        pygame.mixer.stop()
         pygame.mixer.music.play(-1)
         new_game = False
         experience_scale = XP()
